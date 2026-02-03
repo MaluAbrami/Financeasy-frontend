@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 
 export function Header() {
@@ -59,8 +60,8 @@ export function Header() {
                     </ul>
 
                     <div className="flex gap-5">
-                        <button className="btn btn-primary">Cadastrar</button>
-                        <button className="btn btn-primary">Entrar</button>
+                        <button className="btn btn-primary"><Link to="/register">Cadastrar</Link></button>
+                        <button className="btn btn-primary"><Link to="/login">Entrar</Link></button>
                     </div>
                 </nav>
             </section>
