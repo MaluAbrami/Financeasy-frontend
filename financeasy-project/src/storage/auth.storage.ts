@@ -1,15 +1,25 @@
-const TOKEN_KEY = "financeasy_token";
+const ACCESS_KEY = "financeasy_token";
+const REFRESH_KEY = "financeasy_token";
 
 export const authStorage = {
-    getToken(): string | null {
-        return localStorage.getItem(TOKEN_KEY);
+    getAccessToken(): string | null {
+        return localStorage.getItem(ACCESS_KEY);
     },
 
-    setToken(token: string) {
-        localStorage.setItem(TOKEN_KEY, token);
+    setAccessToken(token: string) {
+        localStorage.setItem(ACCESS_KEY, token);
+    },
+
+    getRefreshToken(): string | null {
+        return localStorage.getItem(REFRESH_KEY);
+    },
+
+    setRefreshToken(token: string) {
+        localStorage.setItem(REFRESH_KEY, token);
     },
 
     clear() {
-        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ACCESS_KEY);
+        localStorage.removeItem(REFRESH_KEY);
     }
 }
