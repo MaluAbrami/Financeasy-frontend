@@ -1,80 +1,52 @@
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../components/layout/AuthLayout";
 import { TextField } from "../../components/ui/TextField";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { registerSchema, type RegisterFormData } from "../../validators/auth.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PasswordField } from "../../components/ui/PasswordField";
 
 
 export function Register() {
-    const [form, setForm] = useState({email: "", password: "", limit: 0, profileImage: ""});
-    const [errors, setErrors] = useState<{ email?: string; password?: string, limit?: string }>({});
-    const [loading, setLoading] = useState(false);
-    const [serverError, setServerError] = useState("");
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
+    } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema)
+    });
 
-    function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value}));
-    }
-
-    function validate() {
-        const e: typeof errors = {};
-        if(!form.email.trim()) e.email = "Informe seu e-mail.";
-        if(!form.password.trim()) e.password = "Informe sua senha.";
-        if(!form.limit) e.limit = "Informe um limite mensal de gastos para receber alertas.";
-        
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    }
-
-    async function onSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        setServerError("");
-
-        if(!validate()) return;
-
-        try {
-            setLoading(true);
-
-            // TODO: chamar api de cadastro
-
-            console.log("register payload", form);
-        } catch {
-            setServerError("Não foi possível se cadastrar. Verifique seus dados e tente novamente.")
-        } finally {
-            setLoading(false);
-        }
+    async function onSubmit(data: RegisterFormData) {
+        console.log("register payload", data);
     }
     
     return (
         <>
             <AuthLayout title="Criar conta" subtitle="Comece a organizar suas finanças em poucos minutos.">
-                <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+                <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                     <TextField
                         label="Email"
-                        name="email"
-                        value={form.email}
-                        onChange={onChange}
                         placeHolder="seuemail@exemplo.com"
                         autoComplete="email"
-                        error={errors.email}
+                        error={errors.email?.message}
                     />
 
-                    <TextField
+                    <PasswordField
                         label="Senha"
-                        name="password"
-                        value={form.password}
-                        onChange={onChange}
-                        placeHolder="Sua senha"
-                        autoComplete="current-password"
-                        error={errors.password}
+                        placeholder="Sua senha"
+                        autoComplete="new-password"
+                        error={errors.password?.message}
                     />
 
-                    {serverError && (
-                        <div>
-                            {serverError}
-                        </div>
-                    )}
+                    <PasswordField
+                        label="Confirme senha"
+                        placeholder="Repita a senha"
+                        autoComplete="new-password"
+                        error={errors.confirmPassword?.message}
+                    />
 
                     <button className="btn btn-primary">
-                        {loading ? "Criando conta..." : "Criar conta"}
+                        {isSubmitting ? "Criando conta..." : "Criar conta"}
                     </button>
 
                     <p className="text-sm text-text-muted text-center">

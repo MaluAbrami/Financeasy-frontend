@@ -1,45 +1,37 @@
+import type React from "react";
+import { forwardRef } from "react";
+
 type Props = {
     label: string;
     type?: string;
-    name: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeHolder?: string;
     error?: string;
     autoComplete?: string;
-}
+} & React.InputHTMLAttributes<HTMLInputElement>;
 
-export function TextField({
-    label,
-    type = "text",
-    name,
-    value,
-    onChange,
-    placeHolder,
-    error,
-    autoComplete
-} : Props) {
+export const TextField = forwardRef<HTMLInputElement, Props>(
+  ({ label, type = "text", placeholder, error, autoComplete, ...rest }, ref) => {
     return (
-        <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium" htmlFor={name}>
-                {label}
-            </label>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium">
+          {label}
+        </label>
 
-            <input 
-                id={name}
-                name={name}
-                type={type}
-                value={value}
-                onChange={onChange}
-                placeholder={placeHolder}
-                autoComplete={autoComplete}
-                className={`h-11 rounded-x1 border bg-bg px-4 text-sm outline-none transition
-                    ${error? "border-error" : "border-muted"}
-                    focus:border-primary
-                `} 
-            />
+        <input
+          ref={ref}
+          type={type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className={`h-11 rounded-xl border bg-bg px-4 text-sm outline-none transition
+            ${error ? "border-error" : "border-muted"}
+            focus:border-primary`}
+          {...rest}
+        />
 
-            {error && <p className="text-xs text-error">{error}</p>} 
-        </div>
+        {error && <p className="text-xs text-error">{error}</p>}
+      </div>
     );
-}
+  }
+);
+
+TextField.displayName = "TextField";

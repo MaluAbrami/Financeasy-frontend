@@ -2,76 +2,47 @@ import { useState } from "react";
 import { AuthLayout } from "../../components/layout/AuthLayout";
 import { TextField } from "../../components/ui/TextField";
 import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { loginSchema, type LoginFormData } from "../../validators/auth.schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { PasswordField } from "../../components/ui/PasswordField";
 
 
 export function Login() {
-    const [form, setForm] = useState({email: "", password: ""});
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-    const [loading, setLoading] = useState(false);
-    const [serverError, setServerError] = useState("");
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: "", password: "" },
+    });
 
-    function onChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setForm((prev) => ({ ...prev, [e.target.name]: e.target.value}));
-    }
-
-    function validate() {
-        const e: typeof errors = {};
-        if(!form.email.trim()) e.email = "Informe seu e-mail.";
-        if(!form.password.trim()) e.password = "Informe sua senha.";
-        setErrors(e);
-        return Object.keys(e).length === 0;
-    }
-
-    async function onSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        setServerError("");
-
-        if(!validate()) return;
-
-        try {
-            setLoading(true);
-
-            // TODO: chamar api de login
-
-            console.log("login payload", form);
-        } catch {
-            setServerError("Não foi possível entrar. Verifique seus dados e tente novamente.")
-        } finally {
-            setLoading(false);
-        }
+    async function onSubmit(data: LoginFormData) {
+        console.log("login payload", data);
     }
 
     return (
         <AuthLayout title="Entrar" subtitle="Acesse sua conta para continuar seu controle financeiro.">
-            <form className="flex flex-col gap-4" onSubmit={onSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                 <TextField
                     label="Email"
-                    name="email"
-                    value={form.email}
-                    onChange={onChange}
                     placeHolder="seuemail@exemplo.com"
                     autoComplete="email"
-                    error={errors.email}
+                    error={errors.email?.message}
+                    {...register("email")}
                 />
 
-                <TextField
+                <PasswordField
                     label="Senha"
-                    name="password"
-                    value={form.password}
-                    onChange={onChange}
-                    placeHolder="Sua senha"
+                    placeholder="Sua senha"
                     autoComplete="current-password"
-                    error={errors.password}
+                    error={errors.password?.message}
+                    {...register("password")}
                 />
-
-                {serverError && (
-                    <div>
-                        {serverError}
-                    </div>
-                )}
 
                 <button className="btn btn-primary">
-                    {loading ? "Entrando..." : "Entrar"}
+                    {isSubmitting ? "Entrando..." : "Entrar"}
                 </button>
 
                 <p className="text-sm text-text-muted text-center">
