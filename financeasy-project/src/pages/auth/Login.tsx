@@ -55,7 +55,7 @@ export function Login() {
                 />
 
                 <TextField
-                    label="Password"
+                    label="Senha"
                     name="password"
                     value={form.password}
                     onChange={onChange}

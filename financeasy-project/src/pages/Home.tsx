@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Footer } from "../components/layout/Footer";
 import { Header } from "../components/layout/Header";
 
@@ -20,7 +21,7 @@ export function Home() {
             </div>
 
             <div className="flex gap-3">
-              <button className="btn btn-primary"> Comece já - é grátis</button>
+              <button className="btn btn-primary"><Link to="/register">Comece já - é grátis</Link></button>
               <button className="btn btn-secondary"><a href="#como-funciona">Ver como funciona</a></button>
             </div>
           </div>
@@ -91,7 +92,7 @@ export function Home() {
             <p>Comece agora e organize suas finanças em poucos minutos.</p>
           </div>
 
-          <button className="btn btn-primary">Comece já - é grátis</button>
+          <button className="btn btn-primary"><Link to="/register">Comece já - é grátis</Link></button>
         </div>
       </section>
       <Footer></Footer>

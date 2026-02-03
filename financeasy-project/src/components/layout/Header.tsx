@@ -10,9 +10,9 @@ export function Header() {
 
                     <ul className="flex gap-5">
                         <li className="relative group">
-                            <a href="#" className="text-slate-300">
+                            <Link to="/" className="text-slate-300">
                             Início
-                            </a>
+                            </Link>
                             <span className="
                             absolute left-0 -bottom-1
                             h-[2px] w-0
