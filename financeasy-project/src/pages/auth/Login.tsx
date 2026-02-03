@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthLayout } from "../../components/layout/AuthLayout";
 import { TextField } from "../../components/ui/TextField";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { loginSchema, type LoginFormData } from "../../validators/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PasswordField } from "../../components/ui/PasswordField";
-
+import { useAuth } from "../../contexts/AuthContext";
 
 export function Login() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
+
+    const from = (location.state as any)?.from || "/dashboard";
+
+    const { isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        if(isAuthenticated) navigate("dashboard", { replace: true });
+    }, [isAuthenticated, navigate]);
+
     const {
         register,
         handleSubmit,
@@ -20,6 +32,11 @@ export function Login() {
 
     async function onSubmit(data: LoginFormData) {
         console.log("login payload", data);
+
+        const token = "token-fake";
+        login(token);
+
+        navigate(from, { replace: true });
     }
 
     return (
