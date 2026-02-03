@@ -1,3 +1,4 @@
+import { Footer } from "../components/layout/Footer";
 import { Header } from "../components/layout/Header";
 
 export function Home() {
@@ -93,6 +94,7 @@ export function Home() {
           <button className="btn btn-primary">Comece já - é grátis</button>
         </div>
       </section>
+      <Footer></Footer>
     </>
   );
 }
