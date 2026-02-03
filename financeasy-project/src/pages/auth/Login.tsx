@@ -7,19 +7,20 @@ import { loginSchema, type LoginFormData } from "../../validators/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { useAuth } from "../../contexts/AuthContext";
+import { authService } from "../../services/AuthService";
 
 export function Login() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
 
     const from = (location.state as any)?.from || "/dashboard";
 
-    const { isAuthenticated } = useAuth();
-
     useEffect(() => {
-        if(isAuthenticated) navigate("dashboard", { replace: true });
-    }, [isAuthenticated, navigate]);
+        if(isAuthenticated) {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, from]);
 
     const {
         register,
@@ -33,10 +34,8 @@ export function Login() {
     async function onSubmit(data: LoginFormData) {
         console.log("login payload", data);
 
-        const token = "token-fake";
+        const token = await authService.login(data.email, data.password);
         login(token);
-
-        navigate(from, { replace: true });
     }
 
     return (
@@ -44,7 +43,7 @@ export function Login() {
             <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                 <TextField
                     label="Email"
-                    placeHolder="seuemail@exemplo.com"
+                    placeholder="seuemail@exemplo.com"
                     autoComplete="email"
                     error={errors.email?.message}
                     {...register("email")}
@@ -58,7 +57,7 @@ export function Login() {
                     {...register("password")}
                 />
 
-                <button className="btn btn-primary">
+                <button className="btn btn-primary" disabled={isSubmitting}>
                     {isSubmitting ? "Entrando..." : "Entrar"}
                 </button>
 

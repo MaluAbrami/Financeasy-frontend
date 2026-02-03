@@ -1,5 +1,5 @@
-const ACCESS_KEY = "financeasy_token";
-const REFRESH_KEY = "financeasy_token";
+const ACCESS_KEY = "access_token";
+const REFRESH_KEY = "refresh_token";
 
 export const authStorage = {
     getAccessToken(): string | null {

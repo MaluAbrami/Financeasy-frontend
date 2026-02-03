@@ -12,18 +12,14 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({children}: {children: React.ReactNode}) {
-    const [token, setToken] = useState<string | null>(null);
-
-    useEffect(() => {
-        setToken(authStorage.getToken());
-    }, []);
+    const [token, setToken] = useState<string | null>(() => authStorage.getAccessToken());
 
     const value = useMemo<AuthContextValue>(() => {
         return {
             token,
             isAuthenticated: !!token,
             login: (newToken: string) => {
-                authStorage.setToken(newToken);
+                authStorage.setAccessToken(newToken);
                 setToken(newToken);
             },
             logout: () => {
