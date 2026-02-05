@@ -4,7 +4,7 @@ import { NavBar } from "../components/layout/NavBar";
 export function Dashboard() {
     return (
         <>
-            <section className="flex w-full">
+            <section className="flex flex-col md:flex-row w-full">
                 <NavBar/>
                 <div>
                     <div>
