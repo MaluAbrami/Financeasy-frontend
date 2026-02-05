@@ -3,6 +3,8 @@ import { NavBar } from "../components/layout/NavBar";
 import type { GetAllBanksAccounts } from "../models/bankAccount/GetAllBanksAccounts";
 import { bankAccountService } from "../services/BankAccountService";
 import type { PaginationRequest } from "../models/pagination/PaginationRequest";
+import type { GetAllCards } from "../models/card/GetAllCards";
+import { cardService } from "../services/CardService";
 
 export function Dashboard() {
     const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -10,12 +12,13 @@ export function Dashboard() {
     const [errorAccounts, setErrorAccounts] = useState<string | null>(null);
     const [balanceVisibleById, setBalanceVisibleById] = useState<Record<string, boolean>>({});
 
+    const [allCards, setAllCards] = useState<GetAllCards | null>(null);
+    const [loadingCards, setLoadingCards] = useState(false);
+    const [errorCards, setErrorCards] = useState<string | null>(null);
+
     const toggleBalance = (id: string) => {
     setBalanceVisibleById(prev => ({ ...prev, [id]: !prev[id] }));
     };
-    
-    const [allCards, setAllCards] = useState([]);
-    const [table, setTable] = useState([]);
 
     useEffect(() => {
         async function loadAccounts() {
@@ -41,7 +44,31 @@ export function Dashboard() {
             }
         }
 
-        loadAccounts()
+        async function loadCards() {
+            try {
+                setLoadingCards(true);
+                setErrorCards(null);
+
+                const pagination: PaginationRequest = {
+                    page: 1,
+                    pageSize: 10,
+                    orderBy: "CreditLimit",
+                    direction: "Desc"
+                };
+
+                const response = await cardService.getAll(pagination);
+
+                setAllCards(response);
+            } catch(err) {
+                console.log("ERRO getAll cards:", err);
+                setErrorCards("Não foi possível carregar seus cartões de crédito.");
+            } finally {
+                setLoadingCards(false);
+            }
+        }
+
+        loadAccounts();
+        loadCards();
     }, []);
 
     return (
@@ -107,6 +134,35 @@ export function Dashboard() {
 
                         <div className="bg-surface p-6 rounded-2xl w-full">
                             <h2 className="mb-4 text-3x1 w-full md:w-48">Seus cartões</h2>
+
+                            {loadingCards && <p>Carregando...</p>}
+
+                            {!loadingCards && errorCards && <p>{errorCards}</p>}
+
+                            {!loadingCards && !errorCards && allCards?.cards.length === 0 && <p>Você ainda não tem cartões de crédito cadastrados</p>}
+
+                            {!loadingCards && !errorCards && allCards?.cards.length ? (
+                                <ul className="flex flex-col gap-2">
+                                    {allCards.cards.map((card) => {
+                                        return (
+                                            <li className="flex flex-col md:flex-row border p-6 rounded-2xl h-full w-full justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-white font-bold">{card.name}</span>
+                                                    <span className="text-sm text-text-muted">Banco: {card.bankAccountName}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-semibold text-text-muted">Limite: {card.creditLimit}</span>
+                                                    <span className="text-sm font-semibold text-text-muted">Disponível: {card.availableLimit}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-semibold text-text-muted">Fechamento: {card.closingDay}</span>
+                                                    <span className="text-sm font-semibold text-text-muted">Vencimento: {card.dueDay}</span>
+                                                </div>
+                                            </li>
+                                        )
+                                    })}
+                                </ul>
+                            ): null }
                         </div>
 
                         <div className="bg-surface p-6 rounded-2xl w-full">
