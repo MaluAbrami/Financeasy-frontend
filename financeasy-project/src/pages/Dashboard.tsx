@@ -5,6 +5,9 @@ import { bankAccountService } from "../services/BankAccountService";
 import type { PaginationRequest } from "../models/pagination/PaginationRequest";
 import type { GetAllCards } from "../models/card/GetAllCards";
 import { cardService } from "../services/CardService";
+import type { GetAllTransactions } from "../models/transaction/GetAllTransactions";
+import { transactionService } from "../services/TransactionService";
+import { formatDateBR } from "../util/FormatDateBR";
 
 export function Dashboard() {
     const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -15,6 +18,10 @@ export function Dashboard() {
     const [allCards, setAllCards] = useState<GetAllCards | null>(null);
     const [loadingCards, setLoadingCards] = useState(false);
     const [errorCards, setErrorCards] = useState<string | null>(null);
+
+    const [allTransactions, setAllTransactions] = useState<GetAllTransactions | null>(null);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
+    const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
 
     const toggleBalance = (id: string) => {
     setBalanceVisibleById(prev => ({ ...prev, [id]: !prev[id] }));
@@ -28,7 +35,7 @@ export function Dashboard() {
 
                 const pagination: PaginationRequest = {
                     page: 1,
-                    pageSize: 10,
+                    pageSize: 2,
                     orderBy: "Balance",
                     direction: "Desc"
                 };
@@ -51,7 +58,7 @@ export function Dashboard() {
 
                 const pagination: PaginationRequest = {
                     page: 1,
-                    pageSize: 10,
+                    pageSize: 2,
                     orderBy: "CreditLimit",
                     direction: "Desc"
                 };
@@ -67,8 +74,31 @@ export function Dashboard() {
             }
         }
 
+        async function loadTransactions() {
+            try {
+                setLoadingTransactions(true);
+                setErrorTransactions(null);
+
+                const pagination: PaginationRequest = {
+                    page: 1,
+                    pageSize: 5,
+                    orderBy: "Date",
+                    direction: "Desc"
+                }
+
+                const response = await transactionService.getAll(pagination);
+
+                setAllTransactions(response);
+            } catch (err) {
+                setErrorTransactions("Não foi possível carregar suas transações recentes");
+            } finally {
+                setLoadingTransactions(false);
+            }
+        }
+
         loadAccounts();
         loadCards();
+        loadTransactions();
     }, []);
 
     return (
@@ -167,6 +197,43 @@ export function Dashboard() {
 
                         <div className="bg-surface p-6 rounded-2xl w-full">
                             <h2 className="mb-4 text-3x1 w-full md:w-48">Recentes</h2>
+
+                            {loadingTransactions && <p>Carregando...</p>}
+
+                            {!loadingTransactions && errorTransactions && <p>{errorTransactions}</p>}
+
+                            {!loadingTransactions && !errorTransactions && allTransactions?.transactions.length === 0 && <p>Você ainda não cadastrou nenhuma transação.</p>}
+
+                            {!loadingTransactions && !errorTransactions && allTransactions?.transactions?.length ? (
+                            <div className="mt-3">
+                                {/* Header */}
+                                <div className="grid grid-cols-[1.2fr_1fr_.9fr_1fr_.9fr] gap-3 text-xs font-semibold text-text-muted pb-2 border-b border-muted">
+                                <span>Banco</span>
+                                <span>Categoria</span>
+                                <span>Método</span>
+                                <span className="text-right">Valor</span>
+                                <span className="text-right">Data</span>
+                                </div>
+
+                                {/* Rows */}
+                                <ul className="mt-2 flex flex-col">
+                                    {allTransactions.transactions.map((trans) => (
+                                        <li
+                                        key={trans.id}
+                                        className="grid grid-cols-[1.2fr_1fr_.9fr_1fr_.9fr] gap-3 py-2 items-center border-b border-muted/60 last:border-b-0"
+                                        >
+                                        <span className="truncate">{trans.bankAccountName}</span>
+                                        <span className="truncate">{trans.categoryName}</span>
+                                        <span className="truncate">{trans.paymentMethod}</span>
+                                        <span className="text-right font-semibold">
+                                            {trans.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                                        </span>
+                                        <span className="text-right">{formatDateBR(trans.date)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            ) : null}
                         </div>
                     </div>
                     <div className="flex flex-col md:flex-row justify-between">
