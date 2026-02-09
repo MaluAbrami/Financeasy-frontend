@@ -238,16 +238,16 @@ export function Dashboard() {
                     </div>
                     <div className="flex flex-col md:flex-row justify-between">
                         <div>
-                            <p>Aqui vai ficar mais um gráfico</p>
+                            <p>Expectativas do mês</p>
                         </div>
                         <div>
-                            <p>Aqui vai ficar o gráfico com a porcentagem do seu gasto do mês</p>
+                            <p>Aqui vai ficar o gráfico com a porcentagem do seu gasto do mês em relação a renda</p>
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row justify-center">
                         <div>
-                            <p>Aqui vai ficar a tabela com gastos do mês já lançados ou planejados mensais esperados</p>
+                            <p>Aqui vai ficar a tabela para realizar o cadastro de transações referentes ao mês</p>
                         </div>
                     </div>
                 </div>
