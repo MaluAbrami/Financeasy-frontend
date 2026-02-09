@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { Header } from "./Header";
-import { Footer } from "./Footer";
 
 type Props = {
     title: string;
@@ -8,22 +6,14 @@ type Props = {
     children: ReactNode;
 }
 
-export function AuthLayout({title, subtitle, children}: Props) {
-    return (
-        <>
-            <Header/>
-            <main className="bg-bg">
-                <section className="mx-auto max-w-6xl py-16">
-                    <div className="mx-auto max-w-md bg-surface shadow rounded-2xl p-8">
-                        <h1 className="text-2xl font-bold">{title}</h1>
-                        {subtitle && <p className="mt-2 text-sm text-text-muted">{subtitle}</p>}
-                        <div className="mt-6">
-                            {children}
-                        </div>
-                    </div>
-                </section>
-            </main>
-            <Footer/>
-        </>
-    );
+export function AuthLayout({ title, subtitle, children }: Props) {
+  return (
+    <main className="min-h-screen flex items-center justify-center px-6 py-14 bg-background">
+      <section className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
+        <div className="mt-6">{children}</div>
+      </section>
+    </main>
+  );
 }
