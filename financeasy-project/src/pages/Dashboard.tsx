@@ -8,6 +8,10 @@ import { cardService } from "../services/CardService";
 import type { GetAllTransactions } from "../models/transaction/GetAllTransactions";
 import { transactionService } from "../services/TransactionService";
 import { formatDateBR } from "../util/FormatDateBR";
+import { MonthlyTransactionsTable } from "@/components/layout/MonthlyTransactionsTable";
+import type { GetAllCategories } from "@/models/category/GetAllCategories";
+import { categoryService } from "@/services/CategoryService";
+import type { CreateTransactionRequest } from "@/models/transaction/CreateTransactionRequest";
 
 export function Dashboard() {
   const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -22,6 +26,10 @@ export function Dashboard() {
   const [allTransactions, setAllTransactions] = useState<GetAllTransactions | null>(null);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [errorTransactions, setErrorTransactions] = useState<string | null>(null);
+
+  const [allCategories, setAllCategories] = useState<GetAllCategories | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [errorCategories, setErrorCategories] = useState<string | null>(null);
 
   const toggleBalance = (id: string) => {
     setBalanceVisibleById((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -79,7 +87,7 @@ export function Dashboard() {
 
         const pagination: PaginationRequest = {
           page: 1,
-          pageSize: 5,
+          pageSize: 4,
           orderBy: "Date",
           direction: "Desc",
         };
@@ -93,10 +101,47 @@ export function Dashboard() {
       }
     }
 
+    async function loadCategories() {
+      try {
+        setLoadingCategories(true);
+        setErrorCategories(null);
+
+        const pagination: PaginationRequest = {
+          page: 1,
+          pageSize: 50,
+          orderBy: "Name",
+          direction: "Asc",
+        };
+
+        const response = await categoryService.getAll(pagination);
+        setAllCategories(response);
+      } catch (err) {
+        console.log("ERRO getAll categories:", err);
+        setErrorCategories("Não foi possível carregar suas categorias.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+
     loadAccounts();
     loadCards();
     loadTransactions();
+    loadCategories();
   }, []);
+
+  async function handleCreateTransactions(transactions: CreateTransactionRequest[]) {
+    try {
+      for(const t of transactions) {
+        await transactionService.create(t);
+
+        console.log(`payload enviado ${t}`);
+      }
+
+      console.log("Transações cadastradas com sucesso");
+    } catch(err) {
+      console.log(`Error ${err}`);
+    }
+  }
 
   return (
     <section className="flex flex-col md:flex-row w-full min-h-screen">
@@ -251,14 +296,11 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="flex justify-center">
-          <div className="bg-card border border-border p-6 rounded-2xl w-full">
-            <p className="text-foreground font-semibold">Lançamentos do mês</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Aqui vai ficar a tabela para realizar o cadastro de transações referentes ao mês.
-            </p>
-          </div>
-        </div>
+        <MonthlyTransactionsTable
+          bankAccounts={allBankAccounts?.banksAccounts ?? []}
+          categories={allCategories?.categorys ?? []}
+          onSubmit={handleCreateTransactions}
+        />
       </div>
     </section>
   );
