@@ -14,7 +14,6 @@ import { MonthlyEntriesSection } from "@/components/layout/MonthlyEntriesSection
 import { cardPurchaseService } from "@/services/CardPurchaseService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form } from "react-router-dom";
 import type { CreateBankAccount } from "@/models/bankAccount/CreateBankAccount";
 
 export function Dashboard() {
@@ -42,32 +41,41 @@ export function Dashboard() {
     balance: 0,
   });
 
+  // ✅ paginação das contas
+  const [accountsPage, setAccountsPage] = useState(1);
+  const accountsPageSize = 2;
+
+  const accountsTotalPages = allBankAccounts?.pagination?.totalPages ?? 1;
+
   const toggleBalance = (id: string) => {
     setBalanceVisibleById((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  useEffect(() => {
-    async function loadAccounts() {
-      try {
-        setLoadingAccounts(true);
-        setErrorAccounts(null);
+  async function loadAccounts(page: number) {
+    try {
+      setLoadingAccounts(true);
+      setErrorAccounts(null);
 
-        const pagination: PaginationRequest = {
-          page: 1,
-          pageSize: 5,
-          orderBy: "Balance",
-          direction: "Desc",
-        };
+      const pagination: PaginationRequest = {
+        page,
+        pageSize: accountsPageSize,
+        orderBy: "Balance",
+        direction: "Desc",
+      };
 
-        const response = await bankAccountService.getAll(pagination);
-        setAllBankAccounts(response);
-      } catch (err) {
-        console.log("ERRO getAll bank accounts:", err);
-        setErrorAccounts("Não foi possível carregar suas contas.");
-      } finally {
-        setLoadingAccounts(false);
-      }
+      const response = await bankAccountService.getAll(pagination);
+      setAllBankAccounts(response);
+      setAccountsPage(page);
+    } catch (err) {
+      console.log("ERRO getAll bank accounts:", err);
+      setErrorAccounts("Não foi possível carregar suas contas.");
+    } finally {
+      setLoadingAccounts(false);
     }
+  }
+
+  useEffect(() => {
+    loadAccounts(1);
 
     async function loadCards() {
       try {
@@ -134,10 +142,10 @@ export function Dashboard() {
       }
     }
 
-    loadAccounts();
     loadCards();
     loadTransactions();
     loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function createNewBankAccount() {
@@ -149,20 +157,11 @@ export function Dashboard() {
 
       await bankAccountService.create(createBankAccount);
 
-      // fecha form, limpa campos, recarrega lista
       setShowAddAccount(false);
       setCreateBankAccount({ bank: "", balance: 0 });
 
-      // recarrega
-      const pagination: PaginationRequest = {
-        page: 1,
-        pageSize: 5,
-        orderBy: "Balance",
-        direction: "Desc",
-      };
-
-      const response = await bankAccountService.getAll(pagination);
-      setAllBankAccounts(response);
+      // ✅ recarrega mantendo paginação correta (2 por página)
+      await loadAccounts(accountsPage);
     } catch (err) {
       console.log("Erro ao criar conta:", err);
       setErrorAccounts("Não foi possível criar a conta.");
@@ -174,21 +173,50 @@ export function Dashboard() {
       <NavBar />
 
       <div className="flex flex-col w-full gap-8 p-6">
+        {/* ✅ removi duplicação desse wrapper */}
         <div className="flex flex-col xl:flex-row w-full gap-6">
           {/* Contas */}
           <div className="bg-card border border-border p-6 rounded-2xl w-full">
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Suas contas</h2>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-semibold text-foreground">Suas contas</h2>
 
-            {loadingAccounts && <p className="text-sm text-muted-foreground">Carregando...</p>}
-            {errorAccounts && <p className="text-sm text-destructive">{errorAccounts}</p>}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadAccounts(Math.max(1, accountsPage - 1))}
+                  disabled={loadingAccounts || accountsPage <= 1}
+                >
+                  Anterior
+                </Button>
+
+                <span className="text-xs text-muted-foreground">
+                  Página {accountsPage} de {accountsTotalPages}
+                </span>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadAccounts(Math.min(accountsTotalPages, accountsPage + 1))}
+                  disabled={loadingAccounts || accountsPage >= accountsTotalPages}
+                >
+                  Próxima
+                </Button>
+              </div>
+            </div>
+
+            {loadingAccounts && <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>}
+            {errorAccounts && <p className="mt-4 text-sm text-destructive">{errorAccounts}</p>}
 
             {!loadingAccounts && !errorAccounts && allBankAccounts?.banksAccounts?.length === 0 && (
-              <p className="text-sm text-muted-foreground">Você ainda não tem contas bancárias cadastradas.</p>
+              <p className="mt-4 text-sm text-muted-foreground">Você ainda não tem contas bancárias cadastradas.</p>
             )}
 
-            {!loadingAccounts && !errorAccounts && allBankAccounts?.banksAccounts.length ? (
-              <ul className="flex flex-col">
-                {allBankAccounts.banksAccounts.map((acc) => {
+            {!loadingAccounts && !errorAccounts && (allBankAccounts?.banksAccounts?.length ?? 0) > 0 && (
+              <ul className="mt-4 flex flex-col">
+                {allBankAccounts!.banksAccounts.map((acc) => {
                   const isVisible = !!balanceVisibleById[acc.id];
 
                   return (
@@ -207,6 +235,7 @@ export function Dashboard() {
                         )}
 
                         <button
+                          type="button"
                           onClick={() => toggleBalance(acc.id)}
                           className="text-xs text-muted-foreground hover:text-foreground transition"
                         >
@@ -217,13 +246,6 @@ export function Dashboard() {
                   );
                 })}
               </ul>
-            ) : null}
-
-            {!loadingAccounts && !errorAccounts && allBankAccounts?.pagination && (
-              <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-                <p>Página: {allBankAccounts.pagination.page}</p>
-                <p>Total: {allBankAccounts.pagination.totalItems}</p>
-              </div>
             )}
 
             <div className="mt-3">
@@ -239,9 +261,7 @@ export function Dashboard() {
                     type="text"
                     placeholder="Nome do banco"
                     value={createBankAccount.bank}
-                    onChange={(e) =>
-                      setCreateBankAccount((prev) => ({ ...prev, bank: e.target.value }))
-                    }
+                    onChange={(e) => setCreateBankAccount((prev) => ({ ...prev, bank: e.target.value }))}
                   />
 
                   <Input
@@ -263,12 +283,7 @@ export function Dashboard() {
                       Salvar
                     </Button>
 
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setShowAddAccount(false)}
-                    >
+                    <Button type="button" variant="secondary" size="sm" onClick={() => setShowAddAccount(false)}>
                       Cancelar
                     </Button>
                   </div>
@@ -276,12 +291,7 @@ export function Dashboard() {
               )}
 
               {!showAddAccount && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowAddAccount(true)}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowAddAccount(true)}>
                   Adicionar conta
                 </Button>
               )}
@@ -302,19 +312,18 @@ export function Dashboard() {
             {!loadingCards && !errorCards && allCards?.cards.length ? (
               <ul className="flex flex-col gap-3">
                 {allCards.cards.map((card) => (
-                  <li key={card.id} className="flex flex-col md:flex-row border border-border p-6 rounded-2xl w-full justify-between gap-4">
+                  <li
+                    key={card.id}
+                    className="flex flex-col md:flex-row border border-border p-6 rounded-2xl w-full justify-between gap-4"
+                  >
                     <div className="flex flex-col">
                       <span className="text-foreground font-semibold">{card.name}</span>
                       <span className="text-sm text-muted-foreground">Banco: {card.bankAccountName}</span>
                     </div>
 
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-muted-foreground">
-                        Limite: {card.creditLimit}
-                      </span>
-                      <span className="text-sm font-semibold text-muted-foreground">
-                        Disponível: {card.availableLimit}
-                      </span>
+                      <span className="text-sm font-semibold text-muted-foreground">Limite: {card.creditLimit}</span>
+                      <span className="text-sm font-semibold text-muted-foreground">Disponível: {card.availableLimit}</span>
                     </div>
 
                     <div className="flex flex-col">
