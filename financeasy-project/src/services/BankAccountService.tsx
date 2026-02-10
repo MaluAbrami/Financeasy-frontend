@@ -1,3 +1,4 @@
+import type { CreateBankAccount } from "@/models/bankAccount/CreateBankAccount";
 import type { GetAllBanksAccounts } from "../models/bankAccount/GetAllBanksAccounts";
 import type { PaginationRequest } from "../models/pagination/PaginationRequest";
 import { apiClient } from "./ApiClient";
@@ -12,4 +13,8 @@ export const bankAccountService = {
 
         return response;
     },
+
+    async create(bankAccount: CreateBankAccount) {
+        await apiClient.post(`${path}`, bankAccount);
+    }
 }

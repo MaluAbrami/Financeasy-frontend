@@ -8,7 +8,7 @@ import type { GetAllCardPurchase } from "@/models/card/GetAllCardPurchases";
 
 import { cardPurchaseService } from "@/services/CardPurchaseService";
 
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import {
   Table,
   TableBody,

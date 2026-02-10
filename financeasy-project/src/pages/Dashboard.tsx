@@ -8,12 +8,14 @@ import { cardService } from "../services/CardService";
 import type { GetAllTransactions } from "../models/transaction/GetAllTransactions";
 import { transactionService } from "../services/TransactionService";
 import { formatDateBR } from "../util/FormatDateBR";
-import { MonthlyTransactionsTable } from "@/components/layout/MonthlyTransactionsTable";
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
 import { categoryService } from "@/services/CategoryService";
-import type { CreateTransactionRequest } from "@/models/transaction/CreateTransactionRequest";
 import { MonthlyEntriesSection } from "@/components/layout/MonthlyEntriesSection";
 import { cardPurchaseService } from "@/services/CardPurchaseService";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Form } from "react-router-dom";
+import type { CreateBankAccount } from "@/models/bankAccount/CreateBankAccount";
 
 export function Dashboard() {
   const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -33,6 +35,13 @@ export function Dashboard() {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [errorCategories, setErrorCategories] = useState<string | null>(null);
 
+  const [showAddAccount, setShowAddAccount] = useState(false);
+
+  const [createBankAccount, setCreateBankAccount] = useState<CreateBankAccount>({
+    bank: "",
+    balance: 0,
+  });
+
   const toggleBalance = (id: string) => {
     setBalanceVisibleById((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -45,7 +54,7 @@ export function Dashboard() {
 
         const pagination: PaginationRequest = {
           page: 1,
-          pageSize: 2,
+          pageSize: 5,
           orderBy: "Balance",
           direction: "Desc",
         };
@@ -131,6 +140,35 @@ export function Dashboard() {
     loadCategories();
   }, []);
 
+  async function createNewBankAccount() {
+    try {
+      if (!createBankAccount.bank.trim()) {
+        setErrorAccounts("Informe o nome do banco.");
+        return;
+      }
+
+      await bankAccountService.create(createBankAccount);
+
+      // fecha form, limpa campos, recarrega lista
+      setShowAddAccount(false);
+      setCreateBankAccount({ bank: "", balance: 0 });
+
+      // recarrega
+      const pagination: PaginationRequest = {
+        page: 1,
+        pageSize: 5,
+        orderBy: "Balance",
+        direction: "Desc",
+      };
+
+      const response = await bankAccountService.getAll(pagination);
+      setAllBankAccounts(response);
+    } catch (err) {
+      console.log("Erro ao criar conta:", err);
+      setErrorAccounts("Não foi possível criar a conta.");
+    }
+  }
+
   return (
     <section className="flex flex-col md:flex-row w-full min-h-screen">
       <NavBar />
@@ -187,6 +225,67 @@ export function Dashboard() {
                 <p>Total: {allBankAccounts.pagination.totalItems}</p>
               </div>
             )}
+
+            <div className="mt-3">
+              {showAddAccount && (
+                <form
+                  className="flex flex-col gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    createNewBankAccount();
+                  }}
+                >
+                  <Input
+                    type="text"
+                    placeholder="Nome do banco"
+                    value={createBankAccount.bank}
+                    onChange={(e) =>
+                      setCreateBankAccount((prev) => ({ ...prev, bank: e.target.value }))
+                    }
+                  />
+
+                  <Input
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    value={String(createBankAccount.balance)}
+                    onChange={(e) => {
+                      const normalized = e.target.value.replace(/\./g, "").replace(",", ".");
+                      const value = Number(normalized);
+                      setCreateBankAccount((prev) => ({
+                        ...prev,
+                        balance: Number.isFinite(value) ? value : 0,
+                      }));
+                    }}
+                  />
+
+                  <div className="flex gap-2">
+                    <Button type="submit" variant="outline" size="sm">
+                      Salvar
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowAddAccount(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              )}
+
+              {!showAddAccount && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddAccount(true)}
+                >
+                  Adicionar conta
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Cartões */}
