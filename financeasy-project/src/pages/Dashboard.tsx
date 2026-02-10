@@ -12,6 +12,8 @@ import { MonthlyTransactionsTable } from "@/components/layout/MonthlyTransaction
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
 import { categoryService } from "@/services/CategoryService";
 import type { CreateTransactionRequest } from "@/models/transaction/CreateTransactionRequest";
+import { MonthlyEntriesSection } from "@/components/layout/MonthlyEntriesSection";
+import { cardPurchaseService } from "@/services/CardPurchaseService";
 
 export function Dashboard() {
   const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -128,20 +130,6 @@ export function Dashboard() {
     loadTransactions();
     loadCategories();
   }, []);
-
-  async function handleCreateTransactions(transactions: CreateTransactionRequest[]) {
-    try {
-      for(const t of transactions) {
-        await transactionService.create(t);
-
-        console.log(`payload enviado ${t}`);
-      }
-
-      console.log("Transações cadastradas com sucesso");
-    } catch(err) {
-      console.log(`Error ${err}`);
-    }
-  }
 
   return (
     <section className="flex flex-col md:flex-row w-full min-h-screen">
@@ -296,10 +284,16 @@ export function Dashboard() {
           </div>
         </div>
 
-        <MonthlyTransactionsTable
+        <MonthlyEntriesSection
           bankAccounts={allBankAccounts?.banksAccounts ?? []}
+          cards={allCards?.cards ?? []}
           categories={allCategories?.categorys ?? []}
-          onSubmit={handleCreateTransactions}
+          onSubmitTransactions={async (payload) => {
+            await Promise.all(payload.map((p) => transactionService.create(p)));
+          }}
+          onSubmitCardPurchases={async (payload) => {
+            await Promise.all(payload.map((p) => cardPurchaseService.create(p)));
+          }}
         />
       </div>
     </section>
