@@ -15,6 +15,8 @@ import { cardPurchaseService } from "@/services/CardPurchaseService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CreateBankAccount } from "@/models/bankAccount/CreateBankAccount";
+import type { GetAllAlerts } from "@/models/alert/GetAllAlerts";
+import { alertService } from "@/services/AlertService";
 
 export function Dashboard() {
   const [allBankAccounts, setAllBankAccounts] = useState<GetAllBanksAccounts | null>(null);
@@ -33,6 +35,13 @@ export function Dashboard() {
   const [allCategories, setAllCategories] = useState<GetAllCategories | null>(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [errorCategories, setErrorCategories] = useState<string | null>(null);
+
+  const [allAlert, setAllAlert] = useState<GetAllAlerts | null>(null);
+  const [loadingAlert, setLoadingAlert] = useState(false);
+  const [errorAlert, setErrorAlert] = useState<string | null>(null);
+
+  const [monthAlert, setMonthAlert] = useState(new Date().getMonth() + 1);
+  const [yearAlert, setYearAlert] = useState(new Date().getFullYear());
 
   const [showAddAccount, setShowAddAccount] = useState(false);
 
@@ -71,6 +80,28 @@ export function Dashboard() {
       setErrorAccounts("Não foi possível carregar suas contas.");
     } finally {
       setLoadingAccounts(false);
+    }
+  }
+
+  async function loadAlerts(month = monthAlert, year = yearAlert) {
+    try {
+      setLoadingAlert(true);
+      setErrorAlert(null);
+
+      const pagination: PaginationRequest = {
+        page: 1,
+        pageSize: 50,
+        orderBy: "",
+        direction: "Asc",
+      };
+
+      const response = await alertService.getAll(month, year, pagination);
+      setAllAlert(response);
+    } catch (err) {
+      console.log("ERRO getAll alerts:", err);
+      setErrorAlert("Não foi possível carregar seus alertas.");
+    } finally {
+      setLoadingAlert(false);
     }
   }
 
@@ -141,12 +172,13 @@ export function Dashboard() {
         setLoadingCategories(false);
       }
     }
-
+    
     loadCards();
     loadTransactions();
     loadCategories();
+    loadAlerts(monthAlert, yearAlert);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [monthAlert, yearAlert]);
 
   async function createNewBankAccount() {
     try {
@@ -380,8 +412,75 @@ export function Dashboard() {
 
         <div className="flex flex-col md:flex-row justify-between gap-6">
           <div className="bg-card border border-border p-6 rounded-2xl w-full">
-            <p className="text-foreground font-semibold">Expectativas do mês</p>
-            <p className="text-sm text-muted-foreground mt-2">Conteúdo em construção.</p>
+            <div className="flex gap-2 mb-4 justify-between">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Contas a pagar</h2>
+              <div>
+                <select
+                value={monthAlert}
+                onChange={(e) => {
+                  setMonthAlert(Number(e.target.value));
+                  loadAlerts();
+                }}
+                className="px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
+                >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                  <option key={month} value={month}>
+                  {new Date(2024, month - 1).toLocaleString("pt-BR", { month: "long" })}
+                  </option>
+                ))}
+                </select>
+
+                <select
+                value={yearAlert}
+                onChange={(e) => {
+                  setYearAlert(Number(e.target.value));
+                  loadAlerts();
+                }}
+                className="px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
+                >
+                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                  <option key={year} value={year}>
+                  {year}
+                  </option>
+                ))}
+                </select>
+              </div>
+            </div>
+
+            {loadingAlert && <p className="text-sm text-muted-foreground">Carregando...</p>}
+            {!loadingAlert && errorAlert && <p className="text-sm text-destructive">{errorAlert}</p>}
+
+            {!loadingAlert && !errorAlert && allAlert?.alerts.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhum alerta para esse mês.</p>
+            )}
+
+            {!loadingAlert && !errorAlert && allAlert?.alerts?.length ? (
+              <div className="mt-3">
+                <div className="grid grid-cols-[1.2fr_1fr_.9fr_1fr_.9fr] gap-3 text-xs font-semibold text-muted-foreground pb-2 border-b border-border">
+                  <span>Banco</span>
+                  <span>Categoria</span>
+                  <span>Método</span>
+                  <span className="text-right">Valor</span>
+                  <span className="text-right">Data</span>
+                </div>
+
+                <ul className="mt-2 flex flex-col">
+                  {allAlert.alerts.map((alert) => (
+                    <li
+                      key={alert.id}
+                      className="grid grid-cols-[1.2fr_1fr_.9fr_1fr_.9fr] gap-3 py-2 items-center border-b border-border/60 last:border-b-0"
+                    >
+                      <span className="truncate text-foreground">{alert.categoryName}</span>
+                      <span className="text-right font-semibold text-foreground">
+                        {alert.expectedAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </span>
+                      <span className="text-right text-foreground">{formatDateBR(alert.dueDate)}</span>
+                      <span className="truncate text-foreground">{formatDateBR(alert.nextDueDate)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <div className="bg-card border border-border p-6 rounded-2xl w-full">
