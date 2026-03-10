@@ -10,7 +10,7 @@ import type { GetAllTransactions } from "@/models/transaction/GetAllTransactions
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
 import type { GetAllAlerts } from "@/models/alert/GetAllAlerts";
 import type { PaginationRequest } from "@/models/pagination/PaginationRequest";
-import type { SpendingMonthlyControlResponse } from "@/models/dashboards/spendingMonthlyControlResponse";
+import type { SpendingMonthlyControlResponse } from "@/models/dashboards/SpendingMonthlyControlResponse";
 import { dashboardService } from "@/services/DashboardService";
 
 export function useDashboardData() {
