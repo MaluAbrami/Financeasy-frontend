@@ -4,6 +4,7 @@ import { Login } from "../pages/auth/Login";
 import { Register } from "../pages/auth/Register";
 import { PrivateRoute } from "./PrivateRoute";
 import { Dashboard } from "../pages/Dashboard";
+import { Cards } from "@/pages/Cards";
 
 
 export function AppRoutes() {
@@ -15,6 +16,9 @@ export function AppRoutes() {
 
             <Route element={<PrivateRoute/>}>
                 <Route path="/dashboard" element={<Dashboard/>}/>
+            </Route>
+            <Route element={<PrivateRoute/>}>
+                <Route path="/cards" element={<Cards/>}/>
             </Route>
         </Routes>
     );

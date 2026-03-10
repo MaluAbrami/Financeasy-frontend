@@ -16,5 +16,11 @@ export const cardPurchaseService = {
         const response = await apiClient.get<GetAllCardPurchase>(`${path}/get-all/${pagination.page}/${pagination.pageSize}/${pagination.orderBy}/${pagination.direction}`);
 
         return response;
+    },
+
+    async getAllByCard(cardId: string, pagination: PaginationRequest): Promise<GetAllCardPurchase> {
+        const response = await apiClient.get<GetAllCardPurchase>(`${path}/get-all-by-card/${cardId}/${pagination.page}/${pagination.pageSize}/${pagination.orderBy}/${pagination.direction}`);
+
+        return response;
     }
 }

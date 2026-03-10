@@ -27,11 +27,13 @@ export function Dashboard() {
   } = useDashboardData();
 
   return (
-    <section className="flex flex-col md:flex-row w-full min-h-screen">
+    <section className="flex w-full h-screen overflow-hidden">
 
+      {/* NAVBAR FIXO */}
       <NavBar />
 
-      <div className="flex flex-col w-full gap-6 p-4 md:p-6">
+      {/* CONTEÚDO COM SCROLL */}
+      <div className="flex flex-col w-full gap-6 p-4 md:p-6 overflow-y-auto">
 
         <AccountsCard
           accounts={accounts?.banksAccounts ?? []}
