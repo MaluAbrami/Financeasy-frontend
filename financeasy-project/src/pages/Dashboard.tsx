@@ -20,17 +20,18 @@ export function Dashboard() {
 
     monthAlert,
     yearAlert,
+    spedingMonthlyControl,
     setMonthAlert,
     setYearAlert,
     loadAccounts,
   } = useDashboardData();
 
   return (
-    <section className="flex w-full min-h-screen">
+    <section className="flex flex-col md:flex-row w-full min-h-screen">
 
       <NavBar />
 
-      <div className="flex flex-col w-full gap-8 p-6">
+      <div className="flex flex-col w-full gap-6 p-4 md:p-6">
 
         <AccountsCard
           accounts={accounts?.banksAccounts ?? []}
@@ -38,32 +39,36 @@ export function Dashboard() {
           loadAccounts={loadAccounts}
         />
 
-        <AlertsCard
-          alerts={alerts?.alerts ?? []}
-          month={monthAlert}
-          year={yearAlert}
-          setMonth={setMonthAlert}
-          setYear={setYearAlert}
-        />
+        <div className="flex flex-col md:flex-row gap-6">
 
-        <ExpenseIncomeChart
-          totalExpense={1200}
-          totalIncome={2500}
+          <AlertsCard
+            alerts={alerts?.alerts ?? []}
+            month={monthAlert}
+            year={yearAlert}
+            setMonth={setMonthAlert}
+            setYear={setYearAlert}
+          />
+
+          <ExpenseIncomeChart
+            totalExpense={spedingMonthlyControl?.totalExpense ?? 0}
+            totalIncome={spedingMonthlyControl?.totalIncome ?? 0}
+          />
+
+        </div>
+
+        <MonthlyEntriesSection
+          bankAccounts={accounts?.banksAccounts ?? []}
+          cards={cards?.cards ?? []}
+          categories={categories?.categorys ?? []}
+          onSubmitTransactions={async (payload) => {
+            await Promise.all(payload.map((p) => transactionService.create(p)));
+          }}
+          onSubmitCardPurchases={async (payload) => {
+            await Promise.all(payload.map((p) => cardPurchaseService.create(p)));
+          }}
         />
 
       </div>
-
-      <MonthlyEntriesSection
-        bankAccounts={accounts?.banksAccounts ?? []}
-        cards={cards?.cards ?? []}
-        categories={categories?.categorys ?? []}
-        onSubmitTransactions={async (payload) => {
-          await Promise.all(payload.map((p) => transactionService.create(p)));
-        }}
-        onSubmitCardPurchases={async (payload) => {
-          await Promise.all(payload.map((p) => cardPurchaseService.create(p)));
-        }}
-      />
 
     </section>
   );

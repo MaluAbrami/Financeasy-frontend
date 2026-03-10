@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { registerSchema, type RegisterFormData } from "../../validators/auth.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PasswordField } from "../../components/ui/PasswordField";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
+import { authService } from "../../services/AuthService";
 
 export function Register() {
   const {
@@ -18,6 +19,7 @@ export function Register() {
   });
 
   async function onSubmit(data: RegisterFormData) {
+    await authService.register(data.email, data.password, null, 0);
     console.log("register payload", data);
   }
 

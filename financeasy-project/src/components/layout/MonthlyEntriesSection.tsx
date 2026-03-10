@@ -29,7 +29,7 @@ export function MonthlyEntriesSection({
     <div className="bg-card border border-border rounded-2xl p-6 w-full">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-foreground">
-          Lançamentos do mês
+          Lançamentos - Acesso rápido
         </h3>
         <p className="text-sm text-muted-foreground">
           Transações normais alteram saldo. Compras no cartão não.

@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { PasswordField } from "../../components/ui/PasswordField";
 import { useAuth } from "../../contexts/AuthContext";
 import { authService } from "../../services/AuthService";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 export function Login() {
   const navigate = useNavigate();

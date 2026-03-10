@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { bankAccountService } from "@/services/BankAccountService";
 import { cardService } from "@/services/CardService";
-import { transactionService } from "@/services/TransactionService";
 import { categoryService } from "@/services/CategoryService";
 import { alertService } from "@/services/AlertService";
 
@@ -11,6 +10,8 @@ import type { GetAllTransactions } from "@/models/transaction/GetAllTransactions
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
 import type { GetAllAlerts } from "@/models/alert/GetAllAlerts";
 import type { PaginationRequest } from "@/models/pagination/PaginationRequest";
+import type { SpendingMonthlyControlResponse } from "@/models/dashboards/spendingMonthlyControlResponse";
+import { dashboardService } from "@/services/DashboardService";
 
 export function useDashboardData() {
 
@@ -18,11 +19,12 @@ export function useDashboardData() {
   const [cards, setCards] = useState<GetAllCards | null>(null);
   const [categories, setCategories] = useState<GetAllCategories | null>(null);
   const [alerts, setAlerts] = useState<GetAllAlerts | null>(null);
+  const [spedingMonthlyControl, setSpendingMontlyControl] = useState<SpendingMonthlyControlResponse | null>(null);
 
   const [monthAlert, setMonthAlert] = useState(new Date().getMonth() + 1);
   const [yearAlert, setYearAlert] = useState(new Date().getFullYear());
 
-  const accountsPageSize = 2;
+  const accountsPageSize = 4;
 
   const defaultPagination: PaginationRequest = {
     page: 1,
@@ -65,6 +67,19 @@ export function useDashboardData() {
     setCategories(response);
   }
 
+  async function loadSpedingMonthlyControl() {
+    var today = new Date();
+    var month = today.getMonth() + 1;
+    var year = today.getFullYear();
+
+    const response = await dashboardService.spedingMothlyControl(
+      month,
+      year
+    );
+
+    setSpendingMontlyControl(response);
+  }
+
   async function loadAlerts(month = monthAlert, year = yearAlert) {
 
     const response = await alertService.getAll(month, year, {
@@ -80,7 +95,7 @@ export function useDashboardData() {
     loadAccounts(1);
     loadCards();
     loadCategories();
-
+    loadSpedingMonthlyControl();
   }, []);
 
   useEffect(() => {
@@ -96,6 +111,7 @@ export function useDashboardData() {
 
     monthAlert,
     yearAlert,
+    spedingMonthlyControl,
     setMonthAlert,
     setYearAlert,
 

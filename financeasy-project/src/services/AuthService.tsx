@@ -13,10 +13,10 @@ export const authService = {
         return response;
     },
 
-    async register(email: string, password: string) {
+    async register(email: string, password: string, profilePhoto: string | null, alertLimit: number) {
         return apiClient.post(
         `${path}/register`,
-        { email, password },
+        { email, password, profilePhoto, alertLimit },
         { auth: false }
         );
     },

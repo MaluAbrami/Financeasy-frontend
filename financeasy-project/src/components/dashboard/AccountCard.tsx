@@ -50,44 +50,38 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
       </div>
 
-      <ul className="mt-4 flex flex-col gap-2">
+      <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
 
         {accounts?.map((acc) => {
 
           const isVisible = !!visible[acc.id];
 
           return (
-            <li key={acc.id} className="p-3 border rounded-xl">
+            <div
+              key={acc.id}
+              className="min-w-[220px] bg-card border border-border rounded-xl p-4"
+            >
+              <p className="text-sm text-muted-foreground">
+                {acc.bank}
+              </p>
 
-              <div className="flex justify-between">
-
-                <span className="font-semibold">{acc.bank}</span>
-
-                <button
-                  onClick={() => toggle(acc.id)}
-                  className="text-xs text-muted-foreground"
-                >
-                  {isVisible ? "Ocultar" : "Mostrar"}
-                </button>
-
-              </div>
-
-              <div className="mt-1 font-semibold">
-
-                {isVisible
-                  ? acc.balance.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })
-                  : "R$ ******"}
-
-              </div>
-
-            </li>
+              <p className="text-lg font-semibold">
+                {acc.balance.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </p>
+            </div>
           );
-        })}
 
-      </ul>
+        })}
+      </div>
+
+      <span>Saldo total: {accounts.reduce((sum, acc) => sum + acc.balance, 0).toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        })}
+      </span>
     </div>
   );
 }
