@@ -10,11 +10,14 @@ import type { CardResponse } from "@/models/card/CardResponse";
 import type { BankAccountResponse } from "@/models/bankAccount/BankAccountResponse";
 import type { GetAllBanksAccounts } from "@/models/bankAccount/GetAllBanksAccounts";
 import { bankAccountService } from "@/services/BankAccountService";
+import type { CategoryResponse } from "@/models/category/CategoryResponse";
+import { categoryService } from "@/services/CategoryService";
 
 export function Cards() {
 
   const [selectedCard, setSelectedCard] = useState<CardResponse | null>(null);
   const [banksAccounts, setBanksAccounts] = useState<GetAllBanksAccounts | null>(null);
+  const [categories, setCategories] = useState<CategoryResponse[] | null>(null);
 
   async function loadAccounts() {
 
@@ -28,8 +31,21 @@ export function Cards() {
     setBanksAccounts(response);
   }
 
+  async function loadCategories() {
+
+    const response = await categoryService.getAll({
+      page: 1,
+      pageSize: 50,
+      orderBy: "Name",
+      direction: "Desc",
+    });
+
+    setCategories(response.categorys);
+  }
+
   useEffect(() => {
       loadAccounts();
+      loadCategories();
   }, []);
   
   return (
@@ -45,7 +61,7 @@ export function Cards() {
         />
 
         {selectedCard && (
-          <CardPurchases cardId={selectedCard.id} />
+          <CardPurchases cardId={selectedCard.id} categories={categories} />
         )}
 
         {selectedCard && (

@@ -1,6 +1,7 @@
 import type { PaginationRequest } from "@/models/pagination/PaginationRequest";
 import { apiClient } from "./ApiClient";
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
+import type { CategoryResponse } from "@/models/category/CategoryResponse";
 
 const path = "/categories";
 

@@ -14,6 +14,7 @@ import {
   PopoverTitle,
   PopoverTrigger
 } from "../ui/popover";
+import { ProportionBar } from "../layout/ProportionBar";
 
 interface CardListProps {
   selectedCard: CardResponse | null;
@@ -204,7 +205,7 @@ export function CardList({
               key={card.id}
               onClick={() => onSelectCard(card)}
               className={`
-                min-w-[220px] p-4 rounded-xl border cursor-pointer
+                min-w-[320px] p-4 rounded-xl border cursor-pointer
                 ${isSelected ? "border-primary" : "border-border"}
               `}
             >
@@ -221,13 +222,30 @@ export function CardList({
                 Fecha {card.closingDay} e Vence {card.dueDay}
               </p>
 
-              <p className="text-lg font-semibold">
-                Limite: {card.creditLimit.toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL"
-                })}
-              </p>
+              <ProportionBar
+                total={card.creditLimit}
+                used={card.usedLimit}
+                usedColor="bg-red-500"
+                remainingColor="bg-green-500"
+              />
+              {/* Valores */}
+              <div className="flex justify-between mt-4 text-sm">
 
+                <p>
+                  Em uso: {card.usedLimit.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+
+                <p className={(card.creditLimit - card.usedLimit) < 0 ? "text-red-500 font-semibold" : "text-green-500 font-semibold"}>
+                  Disponível: {(card.creditLimit - card.usedLimit).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </p>
+
+              </div>
             </div>
           );
         })}

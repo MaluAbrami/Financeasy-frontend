@@ -3,7 +3,7 @@ export type CardResponse = {
     bankAccountName: string;
     name: string;
     creditLimit: number;
-    availableLimit: number;
+    usedLimit: number;
     closingDay: number;
     dueDay: number;
 };
