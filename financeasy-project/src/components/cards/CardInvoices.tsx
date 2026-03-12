@@ -7,9 +7,10 @@ import type { CardInvoiceResponse } from "@/models/card/CardInvoiceResponse";
 
 interface CardInvoicesProps {
   cardId: string;
+  refreshKey: number;
 }
 
-export function CardInvoices({ cardId }: CardInvoicesProps) {
+export function CardInvoices({ cardId, refreshKey }: CardInvoicesProps) {
 
   const [invoices, setInvoices] = useState<CardInvoiceResponse[]>([]);
 
@@ -25,7 +26,7 @@ export function CardInvoices({ cardId }: CardInvoicesProps) {
 
   useEffect(() => {
     loadInvoices();
-  }, [cardId]);
+  }, [cardId, refreshKey]);
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">

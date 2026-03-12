@@ -9,7 +9,7 @@ import type { GetAllTransactions } from "@/models/transaction/GetAllTransactions
 
 import { useMemo, useState, useEffect } from "react";
 
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import {
   Table,
   TableBody,

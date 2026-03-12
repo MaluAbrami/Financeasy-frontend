@@ -18,6 +18,7 @@ export function Cards() {
   const [selectedCard, setSelectedCard] = useState<CardResponse | null>(null);
   const [banksAccounts, setBanksAccounts] = useState<GetAllBanksAccounts | null>(null);
   const [categories, setCategories] = useState<CategoryResponse[] | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   async function loadAccounts() {
 
@@ -43,6 +44,10 @@ export function Cards() {
     setCategories(response.categorys);
   }
 
+  function refresh() {
+    setRefreshKey((prev) => prev + 1);
+  }
+
   useEffect(() => {
       loadAccounts();
       loadCategories();
@@ -58,14 +63,19 @@ export function Cards() {
           selectedCard={selectedCard}
           onSelectCard={setSelectedCard}
           banksAccounts={banksAccounts?.banksAccounts ?? null}
+          refreshKey={refreshKey}
         />
 
         {selectedCard && (
-          <CardPurchases cardId={selectedCard.id} categories={categories} />
+          <CardPurchases
+            cardId={selectedCard.id}
+            categories={categories}
+            onPurchaseChanged={refresh}
+          />
         )}
 
         {selectedCard && (
-          <CardInvoices cardId={selectedCard.id} />
+          <CardInvoices cardId={selectedCard.id} refreshKey={refreshKey}/>
         )}
 
       </div>

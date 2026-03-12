@@ -22,5 +22,9 @@ export const cardPurchaseService = {
         const response = await apiClient.get<GetAllCardPurchase>(`${path}/get-all-by-card/${cardId}/${pagination.page}/${pagination.pageSize}/${pagination.orderBy}/${pagination.direction}`);
 
         return response;
+    },
+
+    async delete(id: string) {
+        await apiClient.del(`${path}/${id}`);
     }
 }

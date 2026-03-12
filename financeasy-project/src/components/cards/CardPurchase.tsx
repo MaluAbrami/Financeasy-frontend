@@ -4,16 +4,27 @@ import { Button } from "@/components/ui/button";
 import { cardPurchaseService } from "@/services/CardPurchaseService";
 
 import type { CardPurchaseResponse } from "@/models/card/CardPurchaseResponse";
-import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from "../ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger
+} from "../ui/popover";
+
 import type { CreateCardPurchase } from "@/models/card/CreateCardPurchase";
 import type { CategoryResponse } from "@/models/category/CategoryResponse";
 
+import { Trash2 } from "lucide-react";
+import { cardInvoiceService } from "@/services/CardInvoiceService";
+
 interface CardPurchasesProps {
   cardId: string;
-  categories: CategoryResponse[] | null
+  categories: CategoryResponse[] | null;
+  onPurchaseChanged: () => void;
 }
 
-export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
+export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPurchasesProps) {
 
   const [purchases, setPurchases] = useState<CardPurchaseResponse[] | null>([]);
 
@@ -24,7 +35,7 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
     purchaseDate: new Date(),
     description: ""
   });
-  
+
   async function handleCreatePurchase() {
     try {
 
@@ -34,6 +45,7 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
       });
 
       await loadPurchases();
+      onPurchaseChanged();
 
       setCreateCardPurchase({
         categoryId: "",
@@ -42,19 +54,30 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
         purchaseDate: new Date(),
         description: ""
       });
-
     } catch (error) {
       console.error("Erro ao criar compra nova no cartão", error);
     }
-  }  
+  }
+
+  async function handleDeletePurchase(id: string) {
+    try {
+      await cardPurchaseService.delete(id);
+      await loadPurchases();
+      onPurchaseChanged();
+    } catch (error) {
+      console.error("Erro ao deletar compra", error);
+    }
+  }
 
   async function loadPurchases() {
+
     const data = await cardPurchaseService.getAllByCard(cardId, {
-        page: 1,
-        pageSize: 10,
-        orderBy: "PurchaseDate",
-        direction: "Desc"
+      page: 1,
+      pageSize: 10,
+      orderBy: "PurchaseDate",
+      direction: "Desc"
     });
+
     setPurchases(data.cardPurchases);
   }
 
@@ -72,20 +95,23 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
         </h2>
 
         <Popover>
-          <PopoverTrigger>
+
+          <PopoverTrigger asChild>
             <Button size="sm">
               Nova compra
             </Button>
           </PopoverTrigger>
 
           <PopoverContent>
+
             <PopoverHeader>
+
               <PopoverTitle className="text-lg">
                 Nova compra
               </PopoverTitle>
 
               <div className="flex flex-col gap-3 mt-3">
-                {/* Banco */}
+
                 <p>Categoria da compra</p>
                 <select
                   className="border rounded-md px-3 py-2 text-sm"
@@ -97,21 +123,30 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
                     }))
                   }
                 >
-                  <option value="" className="bg-card">Selecione uma categoria</option>
+                  <option value="" className="bg-card">
+                    Selecione uma categoria
+                  </option>
 
                   {categories?.map((category) => (
-                    <option key={category.id} value={category.id} className="bg-card">
+                    <option
+                      key={category.id}
+                      value={category.id}
+                      className="bg-card"
+                    >
                       {category.name}
                     </option>
                   ))}
-
                 </select>
 
                 <p>Data da compra</p>
                 <input
                   type="date"
                   className="border rounded-md px-3 py-2 text-sm"
-                  value={createCardPurchase.purchaseDate instanceof Date ? createCardPurchase.purchaseDate.toISOString().split('T')[0] : ''}
+                  value={
+                    createCardPurchase.purchaseDate instanceof Date
+                      ? createCardPurchase.purchaseDate.toISOString().split("T")[0]
+                      : ""
+                  }
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
                       ...prev,
@@ -123,7 +158,6 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
                 <p>Valor</p>
                 <input
                   className="border rounded-md px-3 py-2 text-sm"
-                  placeholder="Opcional"
                   value={createCardPurchase.totalAmount}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -136,7 +170,6 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
                 <p>Parcelas</p>
                 <input
                   className="border rounded-md px-3 py-2 text-sm"
-                  placeholder="Opcional"
                   value={createCardPurchase.installments}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -149,7 +182,6 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
                 <p>Descrição da compra</p>
                 <input
                   className="border rounded-md px-3 py-2 text-sm"
-                  placeholder="Opcional"
                   value={createCardPurchase.description}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -163,17 +195,22 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
                   className="mt-4"
                   size="sm"
                   onClick={handleCreatePurchase}
-                  disabled={!createCardPurchase.categoryId
-                    || !createCardPurchase.installments
-                    || !createCardPurchase.purchaseDate
-                    || !createCardPurchase.totalAmount
+                  disabled={
+                    !createCardPurchase.categoryId ||
+                    !createCardPurchase.installments ||
+                    !createCardPurchase.purchaseDate ||
+                    !createCardPurchase.totalAmount
                   }
                 >
                   Lançar compra
                 </Button>
+
               </div>
+
             </PopoverHeader>
+
           </PopoverContent>
+
         </Popover>
 
       </div>
@@ -184,7 +221,7 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
 
           <div
             key={purchase.id}
-            className="flex justify-between items-center border rounded-lg p-3"
+            className="flex justify-between items-center border rounded-lg p-3 hover:bg-muted/40 transition-colors"
           >
 
             <div>
@@ -203,12 +240,60 @@ export function CardPurchases({ cardId, categories }: CardPurchasesProps) {
 
             </div>
 
-            <p className="font-semibold">
-              {purchase.totalAmount.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL"
-              })}
-            </p>
+            <div className="flex items-center gap-3">
+
+              <p className="font-semibold">
+                {purchase.totalAmount.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL"
+                })}
+              </p>
+
+              <Popover>
+
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-56">
+
+                  <p className="text-sm mb-3">
+                    Deseja realmente excluir a compra de{" "}
+                    {purchase.totalAmount.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL"
+                    })}?
+                  </p>
+
+                  <div className="flex justify-end gap-2">
+
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Cancelar
+                      </Button>
+                    </PopoverTrigger>
+
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeletePurchase(purchase.id)}
+                    >
+                      Excluir
+                    </Button>
+
+                  </div>
+
+                </PopoverContent>
+
+              </Popover>
+
+            </div>
 
           </div>
 

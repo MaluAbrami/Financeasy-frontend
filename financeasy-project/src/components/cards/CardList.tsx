@@ -20,12 +20,14 @@ interface CardListProps {
   selectedCard: CardResponse | null;
   onSelectCard: (card: CardResponse) => void;
   banksAccounts: BankAccountResponse[] | null;
+  refreshKey: number;
 }
 
 export function CardList({
   selectedCard,
   onSelectCard,
-  banksAccounts
+  banksAccounts,
+  refreshKey
 }: CardListProps) {
 
   const [cards, setCards] = useState<CardResponse[]>([]);
@@ -71,7 +73,7 @@ export function CardList({
 
   useEffect(() => {
     loadCards();
-  }, []);
+  }, [refreshKey]);
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
