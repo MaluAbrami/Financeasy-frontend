@@ -49,7 +49,7 @@ export function useDashboardData() {
 
     const response = await cardService.getAll({
       ...defaultPagination,
-      pageSize: 2,
+      pageSize: 50,
       orderBy: "CreditLimit",
       direction: "Desc",
     });

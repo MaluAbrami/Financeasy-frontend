@@ -210,7 +210,7 @@ export function CardList({
               `}
             >
 
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-semibold">
                 {card.name}
               </p>
 

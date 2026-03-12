@@ -17,7 +17,7 @@ export function CardInvoices({ cardId }: CardInvoicesProps) {
     const data = await cardInvoiceService.getAllByCard(cardId, {
         page: 1, 
         pageSize: 10,
-        orderBy: "",
+        orderBy: "ClosingDate",
         direction: "Asc"
     } );
     setInvoices(data.invoices ?? []);

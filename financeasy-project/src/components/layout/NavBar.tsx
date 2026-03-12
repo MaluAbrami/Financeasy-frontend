@@ -65,7 +65,7 @@ export function NavBar() {
 
         <Button
           className="w-full"
-          variant="ghost"
+          variant="outline"
           onClick={logout}
         >
           Sair
