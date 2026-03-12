@@ -8,8 +8,8 @@ interface ProportionBarProps {
 export function ProportionBar({
   total,
   used,
-  usedColor = "bg-red-500",
-  remainingColor = "bg-green-500"
+  usedColor = "bg-red-700", 
+  remainingColor = "bg-emerald-700"
 }: ProportionBarProps) {
 
   const usedPercent =

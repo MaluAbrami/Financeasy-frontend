@@ -65,7 +65,7 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit }:
 
   const paymentMethods: { value: PaymentMethod; label: string }[] = [
     { value: "Pix", label: "Pix" },
-    { value: "DebitCard" as PaymentMethod, label: "Cartão de Débito" },
+    { value: "DebtCard" as PaymentMethod, label: "Cartão de Débito" },
     { value: "Transfer" as PaymentMethod, label: "Transferência" },
     { value: "Cash" as PaymentMethod, label: "Dinheiro" },
   ];

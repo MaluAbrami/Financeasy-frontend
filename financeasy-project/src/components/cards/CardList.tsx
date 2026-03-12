@@ -225,8 +225,8 @@ export function CardList({
               <ProportionBar
                 total={card.creditLimit}
                 used={card.usedLimit}
-                usedColor="bg-red-500"
-                remainingColor="bg-green-500"
+                usedColor = "bg-red-800"
+                remainingColor = "bg-emerald-700"
               />
               {/* Valores */}
               <div className="flex justify-between mt-4 text-sm">

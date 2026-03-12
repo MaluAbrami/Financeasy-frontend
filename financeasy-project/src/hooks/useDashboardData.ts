@@ -90,6 +90,16 @@ export function useDashboardData() {
     setAlerts(response);
   }
 
+  async function refreshDashboard() {
+    await Promise.all([
+      loadAccounts(1),
+      loadCards(),
+      loadCategories(),
+      loadSpedingMonthlyControl(),
+      loadAlerts(monthAlert, yearAlert),
+    ]);
+  }
+
   useEffect(() => {
 
     loadAccounts(1);
@@ -116,5 +126,6 @@ export function useDashboardData() {
     setYearAlert,
 
     loadAccounts,
+    refreshDashboard
   };
 }

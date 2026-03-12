@@ -24,6 +24,7 @@ export function Dashboard() {
     setMonthAlert,
     setYearAlert,
     loadAccounts,
+    refreshDashboard
   } = useDashboardData();
 
   return (
@@ -64,6 +65,7 @@ export function Dashboard() {
           categories={categories?.categorys ?? []}
           onSubmitTransactions={async (payload) => {
             await Promise.all(payload.map((p) => transactionService.create(p)));
+            await refreshDashboard();
           }}
           onSubmitCardPurchases={async (payload) => {
             await Promise.all(payload.map((p) => cardPurchaseService.create(p)));

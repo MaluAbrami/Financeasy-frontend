@@ -48,8 +48,8 @@ export function ExpenseIncomeChart({
       <ProportionBar
         total={totalIncome}
         used={totalExpense}
-        usedColor="bg-red-500"
-        remainingColor="bg-green-500"
+        usedColor = "bg-red-800"
+        remainingColor = "bg-emerald-700"
       />
 
       {/* Valores */}
