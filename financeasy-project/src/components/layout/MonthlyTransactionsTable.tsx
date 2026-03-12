@@ -20,7 +20,7 @@ import {
 } from "../ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 
 import { transactionService } from "@/services/TransactionService";
@@ -63,6 +63,7 @@ function newDraftRow(): TransactionDraft {
 export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, refreshDashboard }: Props) {
   const [rows, setRows] = useState<TransactionDraft[]>(() => [newDraftRow()]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const paymentMethods: { value: PaymentMethod; label: string }[] = [
     { value: "Pix", label: "Pix" },
@@ -190,14 +191,21 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
       {/* ====== Header ====== */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Transações do mês</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Transações do mês
+          </h3>
           <p className="text-sm text-muted-foreground">
             Lance rápido acima e veja suas transações abaixo, em ordem de data.
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button type="button" variant="secondary" onClick={addRow} disabled={!canAdd}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={addRow}
+            disabled={!canAdd}
+          >
             Adicionar linha
           </Button>
 
@@ -209,11 +217,14 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
 
       {!canAdd && (
         <p className="mt-4 text-sm text-muted-foreground">
-          Para lançar transações, você precisa ter pelo menos <b>1 conta</b> e <b>1 categoria</b>.
+          Para lançar transações, você precisa ter pelo menos <b>1 conta</b> e{" "}
+          <b>1 categoria</b>.
         </p>
       )}
 
-      {submitError && <p className="mt-4 text-sm text-destructive">{submitError}</p>}
+      {submitError && (
+        <p className="mt-4 text-sm text-destructive">{submitError}</p>
+      )}
 
       {/* ====== Tabela de lançamento (draft) ====== */}
       <div className="mt-6 overflow-x-auto">
@@ -239,7 +250,9 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                   <TableCell>
                     <Select
                       value={row.bankAccountId}
-                      onValueChange={(v) => updateRow(row.id, { bankAccountId: v })}
+                      onValueChange={(v) =>
+                        updateRow(row.id, { bankAccountId: v })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -257,7 +270,9 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                   <TableCell>
                     <Select
                       value={row.categoryId}
-                      onValueChange={(v) => updateRow(row.id, { categoryId: v })}
+                      onValueChange={(v) =>
+                        updateRow(row.id, { categoryId: v })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
@@ -275,14 +290,19 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                   <TableCell>
                     <Select
                       value={row.paymentMethod}
-                      onValueChange={(v) => updateRow(row.id, { paymentMethod: v as PaymentMethod })}
+                      onValueChange={(v) =>
+                        updateRow(row.id, { paymentMethod: v as PaymentMethod })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
                         {paymentMethods.map((m) => (
-                          <SelectItem key={String(m.value)} value={String(m.value)}>
+                          <SelectItem
+                            key={String(m.value)}
+                            value={String(m.value)}
+                          >
                             {m.label}
                           </SelectItem>
                         ))}
@@ -295,7 +315,9 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                       inputMode="decimal"
                       placeholder="0,00"
                       value={row.amount}
-                      onChange={(e) => updateRow(row.id, { amount: e.target.value })}
+                      onChange={(e) =>
+                        updateRow(row.id, { amount: e.target.value })
+                      }
                       className="text-right"
                     />
                   </TableCell>
@@ -303,7 +325,11 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                   <TableCell className="text-right">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button type="button" variant="outline" className="w-full justify-between">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
                           <span className="truncate">
                             {row.date ? formatDateBR(row.date) : "Selecione"}
                           </span>
@@ -315,7 +341,9 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                         <Calendar
                           mode="single"
                           selected={row.date}
-                          onSelect={(d) => updateRow(row.id, { date: d ?? undefined })}
+                          onSelect={(d) =>
+                            updateRow(row.id, { date: d ?? undefined })
+                          }
                           initialFocus
                         />
                       </PopoverContent>
@@ -326,7 +354,9 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                     <Input
                       placeholder="Opcional"
                       value={row.description}
-                      onChange={(e) => updateRow(row.id, { description: e.target.value })}
+                      onChange={(e) =>
+                        updateRow(row.id, { description: e.target.value })
+                      }
                     />
                   </TableCell>
 
@@ -347,7 +377,8 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
         </Table>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Dica: linhas incompletas são ignoradas ao salvar. Preencha Conta, Categoria, Método, Valor e Data.
+          Dica: linhas incompletas são ignoradas ao salvar. Preencha Conta,
+          Categoria, Método, Valor e Data.
         </p>
       </div>
 
@@ -381,88 +412,112 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
           </div>
         </div>
 
-        {loadingTx && <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>}
+        {loadingTx && (
+          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+        )}
         {errorTx && <p className="mt-4 text-sm text-destructive">{errorTx}</p>}
 
-        {!loadingTx && !errorTx && (transactionsData?.transactions?.length ?? 0) === 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">Nenhuma transação encontrada.</p>
-        )}
+        {!loadingTx &&
+          !errorTx &&
+          (transactionsData?.transactions?.length ?? 0) === 0 && (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Nenhuma transação encontrada.
+            </p>
+          )}
 
-        {!loadingTx && !errorTx && (transactionsData?.transactions?.length ?? 0) > 0 && (
-          <div className="mt-4 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[160px]">Conta</TableHead>
-                  <TableHead className="min-w-[160px]">Categoria</TableHead>
-                  <TableHead className="min-w-[140px]">Método</TableHead>
-                  <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-                  <TableHead className="min-w-[140px] text-right">Data</TableHead>
-                  <TableHead className="min-w-[240px]">Descrição</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {transactionsData!.transactions.map((t: TransactionResponse) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="text-foreground">{t.bankAccountName}</TableCell>
-                    <TableCell className="text-foreground">{t.categoryName}</TableCell>
-                    <TableCell className="text-foreground">{String(t.paymentMethod)}</TableCell>
-                    <TableCell className="text-right text-foreground font-semibold">
-                      {t.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground">{formatDateBRFromISO(t.date)}</TableCell>
-                    <TableCell className="text-foreground">{t.description}</TableCell>
-                    <TableCell>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </PopoverTrigger>
-
-                        <PopoverContent className="w-56">
-
-                          <p className="text-sm mb-3">
-                            Deseja realmente excluir a transação de{" "}
-                            {t.amount.toLocaleString("pt-BR", {
-                              style: "currency",
-                              currency: "BRL"
-                            })}?
-                          </p>
-
-                          <div className="flex justify-end gap-2">
-
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                Cancelar
-                              </Button>
-                            </PopoverTrigger>
-
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteTransaction(t.id)}
-                            >
-                              Excluir
-                            </Button>
-
-                          </div>
-
-                        </PopoverContent>
-
-                      </Popover>
-                    </TableCell>
+        {!loadingTx &&
+          !errorTx &&
+          (transactionsData?.transactions?.length ?? 0) > 0 && (
+            <div className="mt-4 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[160px]">Conta</TableHead>
+                    <TableHead className="min-w-[160px]">Categoria</TableHead>
+                    <TableHead className="min-w-[140px]">Método</TableHead>
+                    <TableHead className="min-w-[140px] text-right">
+                      Valor
+                    </TableHead>
+                    <TableHead className="min-w-[140px] text-right">
+                      Data
+                    </TableHead>
+                    <TableHead className="min-w-[240px]">Descrição</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                </TableHeader>
+
+                <TableBody>
+                  {transactionsData!.transactions.map(
+                    (t: TransactionResponse) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="text-foreground">
+                          {t.bankAccountName}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {t.categoryName}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {String(t.paymentMethod)}
+                        </TableCell>
+                        <TableCell className="text-right text-foreground font-semibold">
+                          {t.amount.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right text-foreground">
+                          {formatDateBRFromISO(t.date)}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {t.description}
+                        </TableCell>
+                        <Popover open={openId === t.id} onOpenChange={(o) => setOpenId(o ? t.id : null)}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-500 hover:text-red-600"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </PopoverTrigger>
+
+                          <PopoverContent className="w-56">
+                            <PopoverHeader>
+                              <p className="text-sm mb-3">
+                                Deseja realmente excluir a transação de{" "}
+                                {t.amount.toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                                ?
+                              </p>
+
+                              <div className="flex justify-end gap-2">
+                                <Button variant="outline" size="sm" onClick={() => setOpenId(null)}>
+                                  Cancelar
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                        handleDeleteTransaction(t.id) 
+                                        setOpenId(null)
+                                  }}
+                                >
+                                  Excluir
+                                </Button>
+                              </div>
+                            </PopoverHeader>
+                          </PopoverContent>
+                        </Popover>
+                      </TableRow>
+                    ),
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
       </div>
     </div>
   );

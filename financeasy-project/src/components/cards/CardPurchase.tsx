@@ -25,7 +25,7 @@ interface CardPurchasesProps {
 }
 
 export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPurchasesProps) {
-
+  const [open, setOpen] = useState(false);
   const [purchases, setPurchases] = useState<CardPurchaseResponse[] | null>([]);
 
   const [createCardPurchase, setCreateCardPurchase] = useState<Omit<CreateCardPurchase, "cardId">>({
@@ -249,7 +249,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                 })}
               </p>
 
-              <Popover>
+              <Popover open={open} onOpenChange={setOpen}>
 
                 <PopoverTrigger asChild>
                   <Button
@@ -262,32 +262,34 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                 </PopoverTrigger>
 
                 <PopoverContent className="w-56">
+                  <PopoverHeader>
+                    <p className="text-sm mb-3">
+                      Deseja realmente excluir a compra de{" "}
+                      {purchase.totalAmount.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL"
+                      })}?
+                    </p>
 
-                  <p className="text-sm mb-3">
-                    Deseja realmente excluir a compra de{" "}
-                    {purchase.totalAmount.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL"
-                    })}?
-                  </p>
+                    <div className="flex justify-end gap-2">
 
-                  <div className="flex justify-end gap-2">
-
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
                         Cancelar
                       </Button>
-                    </PopoverTrigger>
 
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDeletePurchase(purchase.id)}
-                    >
-                      Excluir
-                    </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          handleDeletePurchase(purchase.id)
+                          setOpen(false)
+                        }}
+                      >
+                        Excluir
+                      </Button>
 
-                  </div>
+                    </div>
+                  </PopoverHeader>
 
                 </PopoverContent>
 

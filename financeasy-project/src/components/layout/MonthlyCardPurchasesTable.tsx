@@ -19,7 +19,7 @@ import {
 } from "../ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { Trash2 } from "lucide-react";
 
@@ -152,6 +152,8 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
   const page = purchasesData?.pagination?.page ?? 1;
   const totalPages = purchasesData?.pagination?.totalPages ?? 1;
 
+  const [openId, setOpenId] = useState<string | null>(null);
+
   async function loadPurchases(targetPage: number) {
     try {
       setLoading(true);
@@ -194,14 +196,21 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
       {/* Header igual ao padrão */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Compras no cartão</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Compras no cartão
+          </h3>
           <p className="text-sm text-muted-foreground">
             Lance rápido acima e veja suas compras abaixo, em ordem de data.
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button type="button" variant="secondary" onClick={addRow} disabled={!canAdd}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={addRow}
+            disabled={!canAdd}
+          >
             Adicionar linha
           </Button>
 
@@ -213,11 +222,14 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
 
       {!canAdd && (
         <p className="mt-4 text-sm text-muted-foreground">
-          Para lançar compras, você precisa ter pelo menos <b>1 cartão</b> e <b>1 categoria</b>.
+          Para lançar compras, você precisa ter pelo menos <b>1 cartão</b> e{" "}
+          <b>1 categoria</b>.
         </p>
       )}
 
-      {submitError && <p className="mt-4 text-sm text-destructive">{submitError}</p>}
+      {submitError && (
+        <p className="mt-4 text-sm text-destructive">{submitError}</p>
+      )}
 
       {/* Draft table no mesmo padrão: min-width + alinhamentos */}
       <div className="mt-6 overflow-x-auto">
@@ -227,7 +239,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
               <TableHead className="min-w-[190px]">Cartão</TableHead>
               <TableHead className="min-w-[180px]">Categoria</TableHead>
               <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-              <TableHead className="min-w-[120px] text-right">Parcelas</TableHead>
+              <TableHead className="min-w-[120px] text-right">
+                Parcelas
+              </TableHead>
               <TableHead className="min-w-[150px] text-right">Data</TableHead>
               <TableHead className="min-w-[240px]">Descrição</TableHead>
               <TableHead className="w-[60px] text-right">Ações</TableHead>
@@ -261,7 +275,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                   <TableCell>
                     <Select
                       value={row.categoryId}
-                      onValueChange={(v) => updateRow(row.id, { categoryId: v })}
+                      onValueChange={(v) =>
+                        updateRow(row.id, { categoryId: v })
+                      }
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecione" />
@@ -281,7 +297,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                       inputMode="decimal"
                       placeholder="0,00"
                       value={row.totalAmount}
-                      onChange={(e) => updateRow(row.id, { totalAmount: e.target.value })}
+                      onChange={(e) =>
+                        updateRow(row.id, { totalAmount: e.target.value })
+                      }
                       className="text-right"
                     />
                   </TableCell>
@@ -291,7 +309,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                       inputMode="numeric"
                       placeholder="1"
                       value={row.installments}
-                      onChange={(e) => updateRow(row.id, { installments: e.target.value })}
+                      onChange={(e) =>
+                        updateRow(row.id, { installments: e.target.value })
+                      }
                       className="text-right"
                     />
                   </TableCell>
@@ -305,7 +325,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                           className="w-full justify-between"
                         >
                           <span className="truncate">
-                            {row.purchaseDate ? formatDateBR(row.purchaseDate) : "Selecione"}
+                            {row.purchaseDate
+                              ? formatDateBR(row.purchaseDate)
+                              : "Selecione"}
                           </span>
                           <span className="text-muted-foreground">📅</span>
                         </Button>
@@ -315,7 +337,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                         <Calendar
                           mode="single"
                           selected={row.purchaseDate}
-                          onSelect={(d) => updateRow(row.id, { purchaseDate: d ?? undefined })}
+                          onSelect={(d) =>
+                            updateRow(row.id, { purchaseDate: d ?? undefined })
+                          }
                           initialFocus
                         />
                       </PopoverContent>
@@ -326,7 +350,9 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                     <Input
                       placeholder="Opcional"
                       value={row.description}
-                      onChange={(e) => updateRow(row.id, { description: e.target.value })}
+                      onChange={(e) =>
+                        updateRow(row.id, { description: e.target.value })
+                      }
                     />
                   </TableCell>
 
@@ -347,7 +373,8 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
         </Table>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Dica: linhas incompletas são ignoradas ao salvar. Preencha Cartão, Categoria, Valor, Parcelas e Data.
+          Dica: linhas incompletas são ignoradas ao salvar. Preencha Cartão,
+          Categoria, Valor, Parcelas e Data.
         </p>
       </div>
 
@@ -381,11 +408,15 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
           </div>
         </div>
 
-        {loading && <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>}
+        {loading && (
+          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+        )}
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
         {!loading && !error && (historyRows?.length ?? 0) === 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">Nenhuma compra encontrada.</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Nenhuma compra encontrada.
+          </p>
         )}
 
         {!loading && !error && (historyRows?.length ?? 0) > 0 && (
@@ -395,9 +426,15 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                 <TableRow>
                   <TableHead className="min-w-[180px]">Cartão</TableHead>
                   <TableHead className="min-w-[160px]">Categoria</TableHead>
-                  <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-                  <TableHead className="min-w-[120px] text-right">Parcelas</TableHead>
-                  <TableHead className="min-w-[140px] text-right">Data</TableHead>
+                  <TableHead className="min-w-[140px] text-right">
+                    Valor
+                  </TableHead>
+                  <TableHead className="min-w-[120px] text-right">
+                    Parcelas
+                  </TableHead>
+                  <TableHead className="min-w-[140px] text-right">
+                    Data
+                  </TableHead>
                   <TableHead className="min-w-[240px]">Descrição</TableHead>
                 </TableRow>
               </TableHeader>
@@ -405,16 +442,29 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
               <TableBody>
                 {historyRows.map((p: any) => (
                   <TableRow key={p.id}>
-                    <TableCell className="text-foreground">{p.cardName ?? p.card?.name ?? "-"}</TableCell>
-                    <TableCell className="text-foreground">{p.categoryName ?? p.category?.name ?? "-"}</TableCell>
-                    <TableCell className="text-right text-foreground font-semibold">
-                      {Number(p.totalAmount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    <TableCell className="text-foreground">
+                      {p.cardName ?? p.card?.name ?? "-"}
                     </TableCell>
-                    <TableCell className="text-right text-foreground">{p.installments ?? "-"}</TableCell>
-                    <TableCell className="text-right text-foreground">{formatDateBRFromISO(p.purchaseDate)}</TableCell>
-                    <TableCell className="text-foreground">{p.description ?? ""}</TableCell>
+                    <TableCell className="text-foreground">
+                      {p.categoryName ?? p.category?.name ?? "-"}
+                    </TableCell>
+                    <TableCell className="text-right text-foreground font-semibold">
+                      {Number(p.totalAmount ?? 0).toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-right text-foreground">
+                      {p.installments ?? "-"}
+                    </TableCell>
+                    <TableCell className="text-right text-foreground">
+                      {formatDateBRFromISO(p.purchaseDate)}
+                    </TableCell>
+                    <TableCell className="text-foreground">
+                      {p.description ?? ""}
+                    </TableCell>
                     <TableCell>
-                      <Popover>
+                      <Popover open={openId === p.id} onOpenChange={(o) => setOpenId(o ? p.id : null)}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="ghost"
@@ -426,35 +476,34 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                         </PopoverTrigger>
 
                         <PopoverContent className="w-56">
+                          <PopoverHeader>
+                            <p className="text-sm mb-3">
+                              Deseja realmente excluir a compra de{" "}
+                              {p.totalAmount.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                              ?
+                            </p>
 
-                          <p className="text-sm mb-3">
-                            Deseja realmente excluir a transação de{" "}
-                            {p.totalAmount.toLocaleString("pt-BR", {
-                              style: "currency",
-                              currency: "BRL"
-                            })}?
-                          </p>
-
-                          <div className="flex justify-end gap-2">
-
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="outline" size="sm" onClick={() => setOpenId(null)}>
                                 Cancelar
                               </Button>
-                            </PopoverTrigger>
 
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeletePurchase(p.id)}
-                            >
-                              Excluir
-                            </Button>
-
-                          </div>
-
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                      handleDeletePurchase(p.id) 
+                                      setOpenId(null)
+                                }}
+                              >
+                                Excluir
+                              </Button>
+                            </div>
+                          </PopoverHeader>
                         </PopoverContent>
-
                       </Popover>
                     </TableCell>
                   </TableRow>
