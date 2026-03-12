@@ -58,7 +58,6 @@ export function MonthlyEntriesSection({
             cards={cards}
             categories={categories}
             onSubmit={onSubmitCardPurchases}
-            refreshDashboard={refreshDashboard}
           />
         </TabsContent>
       </Tabs>

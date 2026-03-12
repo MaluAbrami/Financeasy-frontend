@@ -429,7 +429,7 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
 
                           <p className="text-sm mb-3">
                             Deseja realmente excluir a transação de{" "}
-                            {p.amount.toLocaleString("pt-BR", {
+                            {p.totalAmount.toLocaleString("pt-BR", {
                               style: "currency",
                               currency: "BRL"
                             })}?
