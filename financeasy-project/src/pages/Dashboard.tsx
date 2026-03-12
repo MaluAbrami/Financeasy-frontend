@@ -70,6 +70,9 @@ export function Dashboard() {
           onSubmitCardPurchases={async (payload) => {
             await Promise.all(payload.map((p) => cardPurchaseService.create(p)));
           }}
+          refreshDashboard={async () =>{
+            await refreshDashboard()
+          }}
         />
 
       </div>

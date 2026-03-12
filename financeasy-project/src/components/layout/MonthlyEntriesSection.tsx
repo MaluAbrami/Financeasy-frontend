@@ -16,6 +16,7 @@ type Props = {
 
   onSubmitTransactions: (payload: CreateTransactionRequest[]) => Promise<void> | void;
   onSubmitCardPurchases: (payload: CreateCardPurchase[]) => Promise<void> | void;
+  refreshDashboard: () => void;
 };
 
 export function MonthlyEntriesSection({
@@ -24,6 +25,7 @@ export function MonthlyEntriesSection({
   categories,
   onSubmitTransactions,
   onSubmitCardPurchases,
+  refreshDashboard
 }: Props) {
   return (
     <div className="bg-card border border-border rounded-2xl p-6 w-full">
@@ -47,6 +49,7 @@ export function MonthlyEntriesSection({
             bankAccounts={bankAccounts}
             categories={categories}
             onSubmit={onSubmitTransactions}
+            refreshDashboard={refreshDashboard}
           />
         </TabsContent>
 
@@ -55,6 +58,7 @@ export function MonthlyEntriesSection({
             cards={cards}
             categories={categories}
             onSubmit={onSubmitCardPurchases}
+            refreshDashboard={refreshDashboard}
           />
         </TabsContent>
       </Tabs>

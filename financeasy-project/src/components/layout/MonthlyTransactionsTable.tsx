@@ -24,11 +24,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 
 import { transactionService } from "@/services/TransactionService";
+import { Trash2 } from "lucide-react";
 
 type Props = {
   bankAccounts: BankAccountResponse[];
   categories: CategoryResponse[];
   onSubmit: (payload: CreateTransactionRequest[]) => Promise<void> | void;
+  refreshDashboard: () => void;
 };
 
 function parseBRL(input: string): number {
@@ -58,8 +60,7 @@ function newDraftRow(): TransactionDraft {
   };
 }
 
-export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit }: Props) {
-  // ====== Draft (lançamentos rápidos) ======
+export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, refreshDashboard }: Props) {
   const [rows, setRows] = useState<TransactionDraft[]>(() => [newDraftRow()]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -166,6 +167,16 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit }:
       setErrorTx("Não foi possível carregar as transações.");
     } finally {
       setLoadingTx(false);
+    }
+  }
+
+  async function handleDeleteTransaction(id: string) {
+    try {
+      await transactionService.delete(id);
+      await loadTransactions(1);
+      await refreshDashboard();
+    } catch (error) {
+      console.error("Erro ao deletar transação", error);
     }
   }
 
@@ -402,6 +413,50 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit }:
                     </TableCell>
                     <TableCell className="text-right text-foreground">{formatDateBRFromISO(t.date)}</TableCell>
                     <TableCell className="text-foreground">{t.description}</TableCell>
+                    <TableCell>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-56">
+
+                          <p className="text-sm mb-3">
+                            Deseja realmente excluir a transação de{" "}
+                            {t.amount.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL"
+                            })}?
+                          </p>
+
+                          <div className="flex justify-end gap-2">
+
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                Cancelar
+                              </Button>
+                            </PopoverTrigger>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteTransaction(t.id)}
+                            >
+                              Excluir
+                            </Button>
+
+                          </div>
+
+                        </PopoverContent>
+
+                      </Popover>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
+import { Trash2 } from "lucide-react";
 
 type Draft = {
   id: string;
@@ -66,7 +67,6 @@ function formatDateBRFromISO(dateIso: string) {
 }
 
 export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props) {
-  // ====== Draft ======
   const [rows, setRows] = useState<Draft[]>(() => [newRow()]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -141,12 +141,10 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
 
     await onSubmit(payload);
 
-    // depois de salvar: limpa drafts e recarrega histórico
     setRows([newRow()]);
     await loadPurchases(1);
   }
 
-  // ====== Histórico (backend paginado) ======
   const [purchasesData, setPurchasesData] = useState<GetAllCardPurchase | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -175,13 +173,21 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
     }
   }
 
+  async function handleDeletePurchase(id: string) {
+    try {
+      await cardPurchaseService.delete(id);
+      await loadPurchases(1);
+    } catch (error) {
+      console.error("Erro ao deletar compra", error);
+    }
+  }
+
+
   useEffect(() => {
     loadPurchases(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ AJUSTE AQUI se o array no seu GetAllCardPurchase tiver outro nome:
-  const historyRows = purchasesData?.purchases ?? [];
+  const historyRows = purchasesData?.cardPurchases ?? [];
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 w-full">
@@ -407,6 +413,50 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                     <TableCell className="text-right text-foreground">{p.installments ?? "-"}</TableCell>
                     <TableCell className="text-right text-foreground">{formatDateBRFromISO(p.purchaseDate)}</TableCell>
                     <TableCell className="text-foreground">{p.description ?? ""}</TableCell>
+                    <TableCell>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </PopoverTrigger>
+
+                        <PopoverContent className="w-56">
+
+                          <p className="text-sm mb-3">
+                            Deseja realmente excluir a transação de{" "}
+                            {p.amount.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL"
+                            })}?
+                          </p>
+
+                          <div className="flex justify-end gap-2">
+
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                Cancelar
+                              </Button>
+                            </PopoverTrigger>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeletePurchase(p.id)}
+                            >
+                              Excluir
+                            </Button>
+
+                          </div>
+
+                        </PopoverContent>
+
+                      </Popover>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

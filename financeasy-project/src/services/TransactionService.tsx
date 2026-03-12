@@ -16,5 +16,9 @@ export const transactionService = {
         var response = await apiClient.post(`${path}`, request);
 
         return response;
+    },
+
+    async delete(id: string) {
+        await apiClient.del(`${path}/${id}`);
     }
 }
