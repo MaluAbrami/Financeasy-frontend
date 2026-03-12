@@ -80,11 +80,17 @@ export function useDashboardData() {
     setSpendingMontlyControl(response);
   }
 
-  async function loadAlerts(month = monthAlert, year = yearAlert) {
+  async function loadAlerts(
+    page: number = 1,
+    pageSize: number = 2,
+    month: number = monthAlert,
+    year: number = yearAlert
+  ) {
 
     const response = await alertService.getAll(month, year, {
       ...defaultPagination,
-      pageSize: 50,
+      page,
+      pageSize,
     });
 
     setAlerts(response);
@@ -96,7 +102,7 @@ export function useDashboardData() {
       loadCards(),
       loadCategories(),
       loadSpedingMonthlyControl(),
-      loadAlerts(monthAlert, yearAlert),
+      loadAlerts(1, 2, monthAlert, yearAlert),
     ]);
   }
 
@@ -109,7 +115,7 @@ export function useDashboardData() {
   }, []);
 
   useEffect(() => {
-    loadAlerts(monthAlert, yearAlert);
+    loadAlerts(1, 2, monthAlert, yearAlert);
   }, [monthAlert, yearAlert]);
 
   return {
@@ -126,6 +132,7 @@ export function useDashboardData() {
     setYearAlert,
 
     loadAccounts,
+    loadAlerts,
     refreshDashboard
   };
 }

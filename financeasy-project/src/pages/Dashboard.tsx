@@ -24,6 +24,7 @@ export function Dashboard() {
     setMonthAlert,
     setYearAlert,
     loadAccounts,
+    loadAlerts,
     refreshDashboard
   } = useDashboardData();
 
@@ -50,6 +51,8 @@ export function Dashboard() {
             year={yearAlert}
             setMonth={setMonthAlert}
             setYear={setYearAlert}
+            categories={categories?.categorys ?? null}
+            loadAlerts={loadAlerts}
           />
 
           <ExpenseIncomeChart

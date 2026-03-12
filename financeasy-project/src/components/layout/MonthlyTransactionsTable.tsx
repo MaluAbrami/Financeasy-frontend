@@ -501,8 +501,8 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => {
-                                        handleDeleteTransaction(t.id) 
-                                        setOpenId(null)
+                                      handleDeleteTransaction(t.id) 
+                                      setOpenId(null)
                                   }}
                                 >
                                   Excluir

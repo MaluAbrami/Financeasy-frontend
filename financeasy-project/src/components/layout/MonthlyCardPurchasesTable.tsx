@@ -495,8 +495,8 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => {
-                                      handleDeletePurchase(p.id) 
-                                      setOpenId(null)
+                                    handleDeletePurchase(p.id) 
+                                    setOpenId(null)
                                 }}
                               >
                                 Excluir
