@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -27,6 +28,8 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
     bank: "",
     balance: 0
   });
+  const [editedBalances, setEditedBalances] = useState<Record<string, number>>({});
+  const [updatingAccountId, setUpdatingAccountId] = useState<string | null>(null);
 
   async function handleCreateAccount() {
     try {
@@ -42,6 +45,25 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
     } catch (error) {
       console.error("Erro ao criar conta", error);
+    }
+  }
+
+  async function handleUpdateBalance(account: BankAccountResponse) {
+    const balance = editedBalances[account.id] ?? account.balance;
+
+    try {
+      setUpdatingAccountId(account.id);
+
+      await bankAccountService.updateBalance({
+        id: account.id,
+        balance,
+      });
+
+      loadAccounts(pagination.page);
+    } catch (error) {
+      console.error("Erro ao atualizar saldo", error);
+    } finally {
+      setUpdatingAccountId(null);
     }
   }
 
@@ -149,12 +171,62 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
           <div
             key={acc.id}
-            className="min-w-[220px] bg-card border border-border rounded-xl p-4"
+            className="min-w-55 bg-card border border-border rounded-xl p-4"
           >
 
-            <p className="text-sm text-muted-foreground">
-              {acc.bank}
-            </p>
+            <div className="flex items-start justify-between gap-2">
+
+              <p className="text-sm text-muted-foreground">
+                {acc.bank}
+              </p>
+
+              <Popover>
+
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    aria-label={`Editar saldo da conta ${acc.bank}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-64">
+
+                  <PopoverHeader>
+                    <PopoverTitle>Atualizar saldo</PopoverTitle>
+                  </PopoverHeader>
+
+                  <div className="mt-3 flex flex-col gap-3">
+                    <input
+                      type="number"
+                      className="border rounded-md px-3 py-2 text-sm"
+                      placeholder="Novo saldo"
+                      value={editedBalances[acc.id] ?? acc.balance}
+                      onChange={(e) =>
+                        setEditedBalances((prev) => ({
+                          ...prev,
+                          [acc.id]: Number(e.target.value),
+                        }))
+                      }
+                    />
+
+                    <Button
+                      size="sm"
+                      onClick={() => handleUpdateBalance(acc)}
+                      disabled={updatingAccountId === acc.id}
+                    >
+                      {updatingAccountId === acc.id ? "Salvando..." : "Salvar"}
+                    </Button>
+                  </div>
+
+                </PopoverContent>
+
+              </Popover>
+
+            </div>
 
             <p className="text-lg font-semibold">
               {acc.balance.toLocaleString("pt-BR", {
