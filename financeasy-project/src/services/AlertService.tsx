@@ -16,5 +16,9 @@ export const alertService = {
 
     async create(alert: CreateAlert) {
         await apiClient.post(`${path}`, alert);
+    },
+
+    async delete(id: string) {
+        await apiClient.del(`${path}/${id}`);
     }
 }

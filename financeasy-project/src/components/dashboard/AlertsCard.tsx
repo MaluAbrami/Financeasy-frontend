@@ -18,6 +18,7 @@ import {
 } from "../ui/popover";
 
 import { Button } from "../ui/button";
+import { Trash2 } from "lucide-react";
 
 interface AlertsProps {
   alerts: AlertResponse[];
@@ -61,6 +62,8 @@ export function AlertsCard({
     { label: "Nenhum", value: RecurrenceType.None },
   ];
 
+  const [openId, setOpenId] = useState<string | null>(null);
+
   useEffect(() => {
     loadAlerts(page, pageSize);
   }, [month, year, page]);
@@ -85,29 +88,33 @@ export function AlertsCard({
     }
   }
 
+  async function handleDeleteAlert(id: string) {
+    try {
+      await alertService.delete(id);
+
+      setPage(1);
+      await loadAlerts(1, pageSize);
+    } catch (error) {
+      console.error("Erro ao criar novo alerta", error);
+    }
+  }
+
   return (
     <div className="bg-card border border-border p-6 rounded-2xl w-full">
-
       <div className="flex justify-between mb-4">
-
         <h2 className="text-xl font-semibold">Contas a pagar</h2>
 
         <div className="flex gap-2">
-
           <Popover>
-
             <PopoverTrigger asChild>
               <Button>+ Alerta</Button>
             </PopoverTrigger>
 
             <PopoverContent className="w-80">
-
               <PopoverHeader>
-
                 <p className="text-lg font-semibold">Criar novo alerta</p>
 
                 <div className="flex flex-col gap-3 mt-3">
-
                   <p>Categoria</p>
 
                   <select
@@ -120,7 +127,6 @@ export function AlertsCard({
                       }))
                     }
                   >
-
                     <option value="">Selecione uma categoria</option>
 
                     {categories?.map((category) => (
@@ -128,7 +134,6 @@ export function AlertsCard({
                         {category.name}
                       </option>
                     ))}
-
                   </select>
 
                   <p>Tipo de recorrência</p>
@@ -143,13 +148,11 @@ export function AlertsCard({
                       }))
                     }
                   >
-
                     {recurrenceOptions.map((type) => (
                       <option key={type.value} value={type.value}>
                         {type.label}
                       </option>
                     ))}
-
                   </select>
 
                   <p>Valor esperado</p>
@@ -228,15 +231,10 @@ export function AlertsCard({
                   >
                     Criar
                   </Button>
-
                 </div>
-
               </PopoverHeader>
-
             </PopoverContent>
-
           </Popover>
-
           <select
             value={month}
             onChange={(e) => {
@@ -245,13 +243,13 @@ export function AlertsCard({
             }}
             className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
           >
-
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <option key={m} value={m}>
-                {new Date(2024, m - 1).toLocaleString("pt-BR", { month: "long" })}
+                {new Date(2024, m - 1).toLocaleString("pt-BR", {
+                  month: "long",
+                })}
               </option>
             ))}
-
           </select>
 
           <select
@@ -262,17 +260,14 @@ export function AlertsCard({
             }}
             className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
           >
-
-            {Array.from({ length: 10 }, (_, i) =>
-              new Date().getFullYear() - 2 + i
+            {Array.from(
+              { length: 10 },
+              (_, i) => new Date().getFullYear() - 2 + i,
             ).map((y) => (
               <option key={y}>{y}</option>
             ))}
-
           </select>
-
         </div>
-
       </div>
 
       {alerts.length === 0 && (
@@ -282,28 +277,21 @@ export function AlertsCard({
       )}
 
       {alerts.length > 0 && (
-
         <div className="mt-3">
-
           <div
             className={`grid ${alertsCols} gap-4 text-sm font-semibold border-b pb-2`}
           >
-
             <span>Categoria</span>
             <span className="text-right">Valor</span>
             <span className="text-right">Vencimento</span>
-
           </div>
 
           <ul className="mt-2 flex flex-col">
-
             {alerts.map((alert) => (
-
               <li
                 key={alert.id}
                 className={`grid ${alertsCols} gap-4 py-3 border-b items-center`}
               >
-
                 <span>{alert.categoryName}</span>
 
                 <span className="text-right font-medium tabular-nums">
@@ -316,15 +304,61 @@ export function AlertsCard({
                 <span className="text-right">
                   {formatDateBR(alert.dueDate)}
                 </span>
+                <span>
+                  <Popover
+                    open={openId === alert.id}
+                    onOpenChange={(o) => setOpenId(o ? alert.id : null)}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </PopoverTrigger>
 
+                    <PopoverContent className="w-56">
+                      <PopoverHeader>
+                        <p className="text-sm mb-3">
+                          Deseja realmente excluir o alerta de{" "}
+                          {alert.expectedAmount.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                          para {alert.categoryName}?
+                        </p>
+
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setOpenId(null)}
+                          >
+                            Cancelar
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              handleDeleteAlert(alert.id);
+                              setOpenId(null);
+                            }}
+                          >
+                            Excluir
+                          </Button>
+                        </div>
+                      </PopoverHeader>
+                    </PopoverContent>
+                  </Popover>
+                </span>
               </li>
-
             ))}
-
           </ul>
 
           <div className="flex justify-between items-center mt-4">
-
             <Button
               variant="outline"
               size="sm"
@@ -334,9 +368,7 @@ export function AlertsCard({
               Anterior
             </Button>
 
-            <span className="text-sm text-muted-foreground">
-              Página {page}
-            </span>
+            <span className="text-sm text-muted-foreground">Página {page}</span>
 
             <Button
               variant="outline"
@@ -346,13 +378,9 @@ export function AlertsCard({
             >
               Próxima
             </Button>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 }
