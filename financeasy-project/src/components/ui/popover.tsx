@@ -83,6 +83,10 @@ function PopoverDescription({
   )
 }
 
+function PopoverClose({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Close>) {
+  return <PopoverPrimitive.Close {...props} />
+}
+
 export {
   Popover,
   PopoverTrigger,
@@ -91,4 +95,5 @@ export {
   PopoverHeader,
   PopoverTitle,
   PopoverDescription,
+  PopoverClose,
 }

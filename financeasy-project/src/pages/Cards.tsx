@@ -7,7 +7,6 @@ import { CardPurchases } from "@/components/cards/CardPurchase";
 import { CardInvoices } from "@/components/cards/CardInvoices";
 
 import type { CardResponse } from "@/models/card/CardResponse";
-import type { BankAccountResponse } from "@/models/bankAccount/BankAccountResponse";
 import type { GetAllBanksAccounts } from "@/models/bankAccount/GetAllBanksAccounts";
 import { bankAccountService } from "@/services/BankAccountService";
 import type { CategoryResponse } from "@/models/category/CategoryResponse";

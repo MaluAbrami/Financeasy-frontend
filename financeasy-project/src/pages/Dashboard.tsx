@@ -15,7 +15,6 @@ export function Dashboard() {
 
   const {
     accounts,
-    cards,
     categories,
     alerts,
 

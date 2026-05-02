@@ -84,6 +84,19 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
     loadPurchases();
   }, [cardId]);
 
+  function validateCreatePurchase() {
+    const errors: Record<string, string> = {};
+
+    if (!createCardPurchase.categoryId) errors.categoryId = "Selecione uma categoria";
+    if (!createCardPurchase.purchaseDate) errors.purchaseDate = "Data é obrigatória";
+    if (createCardPurchase.totalAmount <= 0) errors.totalAmount = "Valor deve ser maior que zero";
+    if (createCardPurchase.installments <= 0) errors.installments = "Parcelas devem ser maior que zero";
+
+    return errors;
+  }
+
+  const purchaseErrors = validateCreatePurchase();
+
   return (
     <div className="bg-card border border-border rounded-xl p-5">
 
@@ -111,9 +124,9 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
 
               <div className="flex flex-col gap-3 mt-3">
 
-                <p>Categoria da compra</p>
+                <label className="font-semibold">Categoria da compra</label>
                 <select
-                  className="border rounded-md px-3 py-2 text-sm"
+                  className={`border rounded-md px-3 py-2 text-sm ${purchaseErrors.categoryId ? 'border-destructive' : ''}`}
                   value={createCardPurchase.categoryId}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -121,6 +134,8 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                       categoryId: e.target.value
                     }))
                   }
+                  aria-invalid={!!purchaseErrors.categoryId}
+                  aria-describedby={purchaseErrors.categoryId ? 'err-category' : undefined}
                 >
                   <option value="" className="bg-card">
                     Selecione uma categoria
@@ -136,11 +151,12 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                     </option>
                   ))}
                 </select>
+                {purchaseErrors.categoryId && <p id="err-category" className="text-xs text-destructive mt-1">{purchaseErrors.categoryId}</p>}
 
-                <p>Data da compra</p>
+                <label className="font-semibold">Data da compra</label>
                 <input
                   type="date"
-                  className="border rounded-md px-3 py-2 text-sm"
+                  className={`border rounded-md px-3 py-2 text-sm ${purchaseErrors.purchaseDate ? 'border-destructive' : ''}`}
                   value={
                     createCardPurchase.purchaseDate instanceof Date
                       ? createCardPurchase.purchaseDate.toISOString().split("T")[0]
@@ -152,11 +168,18 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                       purchaseDate: new Date(e.target.value)
                     }))
                   }
+                  aria-invalid={!!purchaseErrors.purchaseDate}
+                  aria-describedby={purchaseErrors.purchaseDate ? 'err-date' : undefined}
                 />
+                {purchaseErrors.purchaseDate && <p id="err-date" className="text-xs text-destructive mt-1">{purchaseErrors.purchaseDate}</p>}
 
-                <p>Valor</p>
+                <label className="font-semibold">Valor</label>
                 <input
-                  className="border rounded-md px-3 py-2 text-sm"
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  className={`border rounded-md px-3 py-2 text-sm ${purchaseErrors.totalAmount ? 'border-destructive' : ''}`}
                   value={createCardPurchase.totalAmount}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -164,11 +187,16 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                       totalAmount: Number(e.target.value)
                     }))
                   }
+                  aria-invalid={!!purchaseErrors.totalAmount}
+                  aria-describedby={purchaseErrors.totalAmount ? 'err-amount' : undefined}
                 />
+                {purchaseErrors.totalAmount && <p id="err-amount" className="text-xs text-destructive mt-1">{purchaseErrors.totalAmount}</p>}
 
-                <p>Parcelas</p>
+                <label className="font-semibold">Parcelas</label>
                 <input
-                  className="border rounded-md px-3 py-2 text-sm"
+                  type="number"
+                  min={1}
+                  className={`border rounded-md px-3 py-2 text-sm ${purchaseErrors.installments ? 'border-destructive' : ''}`}
                   value={createCardPurchase.installments}
                   onChange={(e) =>
                     setCreateCardPurchase((prev) => ({
@@ -176,9 +204,12 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                       installments: Number(e.target.value)
                     }))
                   }
+                  aria-invalid={!!purchaseErrors.installments}
+                  aria-describedby={purchaseErrors.installments ? 'err-installments' : undefined}
                 />
+                {purchaseErrors.installments && <p id="err-installments" className="text-xs text-destructive mt-1">{purchaseErrors.installments}</p>}
 
-                <p>Descrição da compra</p>
+                <label>Descrição da compra</label>
                 <input
                   className="border rounded-md px-3 py-2 text-sm"
                   value={createCardPurchase.description}
@@ -194,12 +225,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                   className="mt-4"
                   size="sm"
                   onClick={handleCreatePurchase}
-                  disabled={
-                    !createCardPurchase.categoryId ||
-                    !createCardPurchase.installments ||
-                    !createCardPurchase.purchaseDate ||
-                    !createCardPurchase.totalAmount
-                  }
+                  disabled={Object.keys(purchaseErrors).length > 0}
                 >
                   Lançar compra
                 </Button>
