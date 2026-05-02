@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Check, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "../ui/popover";
@@ -196,26 +197,19 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
       {/* Header igual ao padrão */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            Compras no cartão
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground">Compras no cartão</h3>
           <p className="text-sm text-muted-foreground">
-            Lance rápido acima e veja suas compras abaixo, em ordem de data.
+            Use o lançamento rápido acima para registrar compras parceladas no cartão.
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={addRow}
-            disabled={!canAdd}
-          >
-            Adicionar linha
+          <Button type="button" variant="secondary" onClick={addRow} disabled={!canAdd} title="Adicionar linha rápida">
+            + Linha rápida
           </Button>
 
-          <Button type="button" onClick={handleSubmit} disabled={!canAdd}>
-            Salvar
+          <Button type="button" onClick={handleSubmit} disabled={!canAdd} title="Salvar compras">
+            Salvar compras
           </Button>
         </div>
       </div>
@@ -239,9 +233,7 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
               <TableHead className="min-w-[190px]">Cartão</TableHead>
               <TableHead className="min-w-[180px]">Categoria</TableHead>
               <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-              <TableHead className="min-w-[120px] text-right">
-                Parcelas
-              </TableHead>
+              <TableHead className="min-w-[120px] text-right">Parcelas</TableHead>
               <TableHead className="min-w-[150px] text-right">Data</TableHead>
               <TableHead className="min-w-[240px]">Descrição</TableHead>
               <TableHead className="w-[60px] text-right">Ações</TableHead>
@@ -255,21 +247,30 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
               return (
                 <TableRow key={row.id} className={!isRowOk ? "opacity-95" : ""}>
                   <TableCell>
-                    <Select
-                      value={row.cardId}
-                      onValueChange={(v) => updateRow(row.id, { cardId: v })}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cards.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      {isRowOk ? (
+                        <Check className="w-4 h-4 text-emerald-500" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      )}
+                      <div className="min-w-0">
+                        <Select
+                          value={row.cardId}
+                          onValueChange={(v) => updateRow(row.id, { cardId: v })}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cards.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </TableCell>
 
                   <TableCell>
@@ -362,6 +363,7 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                       variant="ghost"
                       onClick={() => removeRow(row.id)}
                       disabled={rows.length <= 1}
+                      aria-label="Remover linha"
                     >
                       ✕
                     </Button>
@@ -436,6 +438,7 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                     Data
                   </TableHead>
                   <TableHead className="min-w-[240px]">Descrição</TableHead>
+                  <TableHead className="w-[60px] text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
 

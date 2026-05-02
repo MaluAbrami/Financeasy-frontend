@@ -30,18 +30,14 @@ export function MonthlyEntriesSection({
   return (
     <div className="bg-card border border-border rounded-2xl p-6 w-full">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">
-          Lançamentos - Acesso rápido
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Transações normais alteram saldo. Compras no cartão não.
-        </p>
+        <h3 className="text-lg font-semibold text-foreground">Lançamentos</h3>
+        <p className="text-sm text-muted-foreground">Transações alteram o saldo; compras no cartão são registradas separadamente e parceladas.</p>
       </div>
 
       <Tabs defaultValue="account">
         <TabsList>
-          <TabsTrigger value="account">Conta</TabsTrigger>
-          <TabsTrigger value="card">Cartão</TabsTrigger>
+          <TabsTrigger value="account">Transações</TabsTrigger>
+          <TabsTrigger value="card">Compras no cartão</TabsTrigger>
         </TabsList>
 
         <TabsContent value="account" className="mt-6">
