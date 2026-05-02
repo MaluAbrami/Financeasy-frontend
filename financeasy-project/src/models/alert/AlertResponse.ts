@@ -4,4 +4,5 @@ export type AlertResponse = {
     expectedAmount: number;
     dueDate: string;
     nextDueDate: string;
+    isPaid: boolean;
 }

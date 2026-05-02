@@ -16,7 +16,6 @@ import type { CreateCardPurchase } from "@/models/card/CreateCardPurchase";
 import type { CategoryResponse } from "@/models/category/CategoryResponse";
 
 import { Trash2 } from "lucide-react";
-import { cardInvoiceService } from "@/services/CardInvoiceService";
 
 interface CardPurchasesProps {
   cardId: string;
@@ -25,7 +24,7 @@ interface CardPurchasesProps {
 }
 
 export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPurchasesProps) {
-  const [open, setOpen] = useState(false);
+  const [openPurchaseId, setOpenPurchaseId] = useState<string | null>(null);
   const [purchases, setPurchases] = useState<CardPurchaseResponse[] | null>([]);
 
   const [createCardPurchase, setCreateCardPurchase] = useState<Omit<CreateCardPurchase, "cardId">>({
@@ -249,7 +248,10 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                 })}
               </p>
 
-              <Popover open={open} onOpenChange={setOpen}>
+              <Popover
+                open={openPurchaseId === purchase.id}
+                onOpenChange={(nextOpen) => setOpenPurchaseId(nextOpen ? purchase.id : null)}
+              >
 
                 <PopoverTrigger asChild>
                   <Button
@@ -273,7 +275,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
 
                     <div className="flex justify-end gap-2">
 
-                      <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+                      <Button variant="outline" size="sm" onClick={() => setOpenPurchaseId(null)}>
                         Cancelar
                       </Button>
 
@@ -282,7 +284,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                         variant="destructive"
                         onClick={() => {
                           handleDeletePurchase(purchase.id)
-                          setOpen(false)
+                          setOpenPurchaseId(null)
                         }}
                       >
                         Excluir

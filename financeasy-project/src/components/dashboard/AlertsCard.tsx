@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import type { AlertResponse } from "@/models/alert/AlertResponse";
+import type { PaginationResponse } from "@/models/pagination/PaginationResponse";
 import type { CreateAlert } from "@/models/alert/CreateAlert";
 import type { CategoryResponse } from "@/models/category/CategoryResponse";
 
@@ -18,7 +19,7 @@ import {
 } from "../ui/popover";
 
 import { Button } from "../ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Check } from "lucide-react";
 
 interface AlertsProps {
   alerts: AlertResponse[];
@@ -26,6 +27,7 @@ interface AlertsProps {
   year: number;
   setMonth: (month: number) => void;
   setYear: (year: number) => void;
+  pagination?: PaginationResponse | null;
   categories: CategoryResponse[] | null;
   loadAlerts: (page: number, pageSize: number) => Promise<void>;
 }
@@ -36,13 +38,12 @@ export function AlertsCard({
   year,
   setMonth,
   setYear,
+  pagination,
   categories,
   loadAlerts,
 }: AlertsProps) {
 
-  const alertsCols = "grid-cols-[2fr_1fr_1fr]";
-
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState<number>(() => pagination?.page ?? 1);
   const pageSize = 2;
 
   const [newAlert, setNewAlert] = useState<CreateAlert>({
@@ -67,6 +68,13 @@ export function AlertsCard({
   useEffect(() => {
     loadAlerts(page, pageSize);
   }, [month, year, page]);
+
+  // Keep local `page` in sync when server returns pagination info
+  useEffect(() => {
+    if (pagination && pagination.page && pagination.page !== page) {
+      setPage(pagination.page);
+    }
+  }, [pagination]);
 
   async function handleCreateAlert() {
     try {
@@ -99,10 +107,21 @@ export function AlertsCard({
     }
   }
 
+  async function handlePayAlert(id: string) {
+    try {
+      await alertService.payAlert(id);
+
+      setPage(1);
+      await loadAlerts(1, pageSize);
+    } catch (error) {
+      console.error("Erro ao marcar alerta como pago", error);
+    }
+  }
+
   return (
     <div className="bg-card border border-border p-6 rounded-2xl w-full">
       <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-semibold">Contas a pagar</h2>
+        <h2 className="text-xl font-semibold">Lembretes — pendências pessoais e recorrentes</h2>
 
         <div className="flex gap-2">
           <Popover>
@@ -110,7 +129,7 @@ export function AlertsCard({
               <Button>+ Alerta</Button>
             </PopoverTrigger>
 
-            <PopoverContent className="w-80">
+            <PopoverContent side="bottom" className="w-80">
               <PopoverHeader>
                 <p className="text-lg font-semibold">Criar novo alerta</p>
 
@@ -278,106 +297,79 @@ export function AlertsCard({
 
       {alerts.length > 0 && (
         <div className="mt-3">
-          <div
-            className={`grid ${alertsCols} gap-4 text-sm font-semibold border-b pb-2`}
-          >
-            <span>Categoria</span>
-            <span className="text-right">Valor</span>
-            <span className="text-right">Vencimento</span>
-          </div>
+          <ul className="mt-1 flex flex-col">
+            {alerts.map((alert) => {
+              const daysLeft = Math.ceil((new Date(alert.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+              
+              let dotColor = "bg-emerald-500"; // Verde: distante (> 5 dias)
+              if (daysLeft <= 2) {
+                dotColor = "bg-red-500"; // Vermelho: na data de vencimento ou atrasado
+              } else if (daysLeft >= 3 && daysLeft <= 5) {
+                dotColor = "bg-amber-500"; // Amarelo: próximo ao vencimento (3-5 dias)
+              } else {
+                dotColor = "bg-emerald-500"; // Verde: ainda distante (> 5 dias)
+              }
 
-          <ul className="mt-2 flex flex-col">
-            {alerts.map((alert) => (
-              <li
-                key={alert.id}
-                className={`grid ${alertsCols} gap-4 py-3 border-b items-center`}
-              >
-                <span>{alert.categoryName}</span>
+              return (
+                <li key={alert.id} className="flex items-center justify-between gap-3 py-2 border-b">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                    <div>
+                      <p className="text-sm font-medium">{alert.categoryName}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateBR(alert.dueDate)}</p>
+                    </div>
+                  </div>
 
-                <span className="text-right font-medium tabular-nums">
-                  {alert.expectedAmount.toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </span>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-semibold tabular-nums">{alert.expectedAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
 
-                <span className="text-right">
-                  {formatDateBR(alert.dueDate)}
-                </span>
-                <span>
-                  <Popover
-                    open={openId === alert.id}
-                    onOpenChange={(o) => setOpenId(o ? alert.id : null)}
-                  >
-                    <PopoverTrigger asChild>
+                    {!alert.isPaid && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 hover:text-red-600"
+                        className="text-green-600 hover:text-green-700"
+                        onClick={() => handlePayAlert(alert.id)}
+                        title="Marcar como pago"
                       >
-                        <Trash2 size={16} />
+                        <Check size={16} />
                       </Button>
-                    </PopoverTrigger>
+                    )}
 
-                    <PopoverContent className="w-56">
-                      <PopoverHeader>
-                        <p className="text-sm mb-3">
-                          Deseja realmente excluir o alerta de{" "}
-                          {alert.expectedAmount.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                          para {alert.categoryName}?
-                        </p>
+                    <Popover open={openId === alert.id} onOpenChange={(o) => setOpenId(o ? alert.id : null)}>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600">
+                          <Trash2 size={16} />
+                        </Button>
+                      </PopoverTrigger>
 
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setOpenId(null)}
-                          >
-                            Cancelar
-                          </Button>
+                      <PopoverContent className="w-56">
+                        <PopoverHeader>
+                          <p className="text-sm mb-3">
+                            Deseja realmente excluir o alerta de {alert.expectedAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} para {alert.categoryName}?
+                          </p>
 
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              handleDeleteAlert(alert.id);
-                              setOpenId(null);
-                            }}
-                          >
-                            Excluir
-                          </Button>
-                        </div>
-                      </PopoverHeader>
-                    </PopoverContent>
-                  </Popover>
-                </span>
-              </li>
-            ))}
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setOpenId(null)}>
+                              Cancelar
+                            </Button>
+
+                            <Button size="sm" variant="destructive" onClick={() => { handleDeleteAlert(alert.id); setOpenId(null); }}>
+                              Excluir
+                            </Button>
+                          </div>
+                        </PopoverHeader>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
 
-          <div className="flex justify-between items-center mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Anterior
-            </Button>
-
-            <span className="text-sm text-muted-foreground">Página {page}</span>
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={alerts.length < pageSize}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Próxima
-            </Button>
+          <div className="flex justify-between items-center mt-3">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+            <span className="text-sm text-muted-foreground">Página {pagination?.page ?? page} de {pagination?.totalPages ?? "?"}</span>
+            <Button variant="outline" size="sm" disabled={pagination ? (pagination.page >= pagination.totalPages) : (alerts.length < pageSize)} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
           </div>
         </div>
       )}

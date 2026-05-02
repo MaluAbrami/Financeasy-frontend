@@ -1,5 +1,4 @@
 import { NavBar } from "@/components/layout/NavBar";
-import { MonthlyEntriesSection } from "@/components/layout/MonthlyEntriesSection";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
 
@@ -7,10 +6,12 @@ import { AccountsCard } from "@/components/dashboard/AccountCard";
 import { AlertsCard } from "@/components/dashboard/AlertsCard";
 import { ExpenseIncomeChart } from "@/components/dashboard/ExpenseIncomeChart";
 
-import { transactionService } from "@/services/TransactionService";
-import { cardPurchaseService } from "@/services/CardPurchaseService";
+import { useNavigate } from "react-router-dom";
+import { CreditCard, FileText, TrendingUp, Bell } from "lucide-react";
 
 export function Dashboard() {
+
+  const navigate = useNavigate();
 
   const {
     accounts,
@@ -25,7 +26,6 @@ export function Dashboard() {
     setYearAlert,
     loadAccounts,
     loadAlerts,
-    refreshDashboard
   } = useDashboardData();
 
   return (
@@ -37,14 +37,77 @@ export function Dashboard() {
       {/* CONTEÚDO COM SCROLL */}
       <div className="flex flex-col w-full gap-6 p-4 md:p-6 overflow-y-auto">
 
-        <AccountsCard
-          accounts={accounts?.banksAccounts ?? []}
-          pagination={accounts?.pagination ?? { totalPages: 1, page: 1, pageSize: 10, totalItems: 0 }}
-          loadAccounts={loadAccounts}
-        />
+        {/* Cabeçalho */}
+        <div>
+          <h1 className="text-3xl font-bold">Bem-vindo de volta!</h1>
+          <p className="text-muted-foreground">Aqui está um resumo da sua situação financeira</p>
+        </div>
 
-        <div className="flex flex-col md:flex-row gap-6">
+        {/* Cards de Navegação Principais */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <div 
+            onClick={() => navigate("/entries")}
+            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+          >
+            <FileText className="w-8 h-8 text-blue-500 mb-3" />
+            <h3 className="font-semibold text-lg mb-1">Lançamentos</h3>
+            <p className="text-sm text-muted-foreground">Registre transações e compras</p>
+          </div>
 
+          <div 
+            onClick={() => navigate("/cards")}
+            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+          >
+            <CreditCard className="w-8 h-8 text-purple-500 mb-3" />
+            <h3 className="font-semibold text-lg mb-1">Cartões</h3>
+            <p className="text-sm text-muted-foreground">Gerencie seus cartões de crédito</p>
+          </div>
+
+          <div 
+            onClick={() => navigate("/simulations")}
+            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+          >
+            <TrendingUp className="w-8 h-8 text-green-500 mb-3" />
+            <h3 className="font-semibold text-lg mb-1">Simulações</h3>
+            <p className="text-sm text-muted-foreground">Simule cenários financeiros</p>
+          </div>
+
+          <div 
+            onClick={() => window.scrollTo(0, document.body.scrollHeight)}
+            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+          >
+            <Bell className="w-8 h-8 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-lg mb-1">Lembretes</h3>
+            <p className="text-sm text-muted-foreground">Veja seus compromissos</p>
+          </div>
+
+        </div>
+
+        {/* Seções principais */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+          {/* Contas Bancárias */}
+          <div className="lg:col-span-2">
+            <AccountsCard
+              accounts={accounts?.banksAccounts ?? []}
+              pagination={accounts?.pagination ?? { totalPages: 1, page: 1, pageSize: 10, totalItems: 0 }}
+              loadAccounts={loadAccounts}
+            />
+          </div>
+
+          {/* Gráfico de Despesas vs Receitas */}
+          <div>
+            <ExpenseIncomeChart
+              totalExpense={spedingMonthlyControl?.totalExpense ?? 0}
+              totalIncome={spedingMonthlyControl?.totalIncome ?? 0}
+            />
+          </div>
+
+        </div>
+
+        {/* Lembretes */}
+        <div>
           <AlertsCard
             alerts={alerts?.alerts ?? []}
             month={monthAlert}
@@ -52,31 +115,10 @@ export function Dashboard() {
             setMonth={setMonthAlert}
             setYear={setYearAlert}
             categories={categories?.categorys ?? null}
+            pagination={alerts?.pagination ?? { page: 1, pageSize: 10, totalItems: 0, totalPages: 1 }}
             loadAlerts={loadAlerts}
           />
-
-          <ExpenseIncomeChart
-            totalExpense={spedingMonthlyControl?.totalExpense ?? 0}
-            totalIncome={spedingMonthlyControl?.totalIncome ?? 0}
-          />
-
         </div>
-
-        <MonthlyEntriesSection
-          bankAccounts={accounts?.banksAccounts ?? []}
-          cards={cards?.cards ?? []}
-          categories={categories?.categorys ?? []}
-          onSubmitTransactions={async (payload) => {
-            await Promise.all(payload.map((p) => transactionService.create(p)));
-            await refreshDashboard();
-          }}
-          onSubmitCardPurchases={async (payload) => {
-            await Promise.all(payload.map((p) => cardPurchaseService.create(p)));
-          }}
-          refreshDashboard={async () =>{
-            await refreshDashboard()
-          }}
-        />
 
       </div>
 

@@ -20,5 +20,9 @@ export const alertService = {
 
     async delete(id: string) {
         await apiClient.del(`${path}/${id}`);
+    },
+
+    async payAlert(id: string) {
+        await apiClient.patch(`${path}/pay-alert/${id}`);
     }
 }

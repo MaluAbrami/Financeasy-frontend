@@ -36,6 +36,14 @@ export function NavBar() {
 
         <Button
           className="w-full"
+          variant={isActive("/entries") ? "default" : "outline"}
+          onClick={() => navigate("/entries")}
+        >
+          Lançamentos
+        </Button>
+
+        <Button
+          className="w-full"
           variant={isActive("/cards") ? "default" : "outline"}
           onClick={() => navigate("/cards")}
         >
