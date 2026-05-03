@@ -6,7 +6,6 @@ import { alertService } from "@/services/AlertService";
 
 import type { GetAllBanksAccounts } from "@/models/bankAccount/GetAllBanksAccounts";
 import type { GetAllCards } from "@/models/card/GetAllCards";
-import type { GetAllTransactions } from "@/models/transaction/GetAllTransactions";
 import type { GetAllCategories } from "@/models/category/GetAllCategories";
 import type { GetAllAlerts } from "@/models/alert/GetAllAlerts";
 import type { PaginationRequest } from "@/models/pagination/PaginationRequest";

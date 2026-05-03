@@ -188,17 +188,17 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
   }, []);
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 w-full">
+    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
       {/* ====== Header ====== */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Transações do mês</h3>
+          <h3 className="text-base md:text-lg font-semibold text-foreground">Transações do mês</h3>
           <p className="text-sm text-muted-foreground">
             Use o lançamento rápido acima para registrar transações (impactam o saldo). As compras no cartão ficam em outra aba.
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="secondary"
@@ -231,13 +231,13 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[190px]">Conta</TableHead>
-              <TableHead className="min-w-[180px]">Categoria</TableHead>
-              <TableHead className="min-w-[160px]">Método</TableHead>
-              <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-              <TableHead className="min-w-[150px] text-right">Data</TableHead>
-              <TableHead className="min-w-[240px]">Descrição</TableHead>
-              <TableHead className="w-[60px] text-right">Ações</TableHead>
+              <TableHead className="min-w-47.5">Conta</TableHead>
+              <TableHead className="min-w-45">Categoria</TableHead>
+              <TableHead className="min-w-40">Método</TableHead>
+              <TableHead className="min-w-35 text-right">Valor</TableHead>
+              <TableHead className="min-w-37.5 text-right">Data</TableHead>
+              <TableHead className="min-w-60">Descrição</TableHead>
+              <TableHead className="w-15 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -393,10 +393,10 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
 
       {/* ====== Listagem do backend (read-only) ====== */}
       <div className="mt-10">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h4 className="text-base font-semibold text-foreground">Histórico</h4>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
@@ -441,13 +441,13 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[160px]">Conta</TableHead>
-                    <TableHead className="min-w-[160px]">Categoria</TableHead>
-                    <TableHead className="min-w-[140px]">Método</TableHead>
-                    <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-                    <TableHead className="min-w-[140px] text-right">Data</TableHead>
-                    <TableHead className="min-w-[240px]">Descrição</TableHead>
-                    <TableHead className="w-[60px] text-right">Ações</TableHead>
+                    <TableHead className="min-w-40">Conta</TableHead>
+                    <TableHead className="min-w-40">Categoria</TableHead>
+                    <TableHead className="min-w-35">Método</TableHead>
+                    <TableHead className="min-w-35 text-right">Valor</TableHead>
+                    <TableHead className="min-w-35 text-right">Data</TableHead>
+                    <TableHead className="min-w-60">Descrição</TableHead>
+                    <TableHead className="w-15 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
 

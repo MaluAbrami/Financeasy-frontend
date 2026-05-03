@@ -1,5 +1,5 @@
 import { apiClient } from "./ApiClient";
-import type { SpendingMonthlyControlResponse } from "@/models/dashboards/spendingMonthlyControlResponse";
+import type { SpendingMonthlyControlResponse } from "@/models/dashboards/SpendingMonthlyControlResponse";
 
 const path = "/dashboards"
 

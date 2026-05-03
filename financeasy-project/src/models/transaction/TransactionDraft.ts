@@ -1,5 +1,3 @@
-import type { PaymentMethod } from "./PaymentMethod";
-
 export type TransactionDraft = {
     id: string;              
     bankAccountId: string;   

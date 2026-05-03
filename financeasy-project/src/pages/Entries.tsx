@@ -22,11 +22,11 @@ export function Entries() {
       <NavBar />
 
       {/* CONTEÚDO COM SCROLL */}
-      <div className="flex flex-col w-full gap-6 p-4 md:p-6 overflow-y-auto">
+      <div className="flex flex-col w-full gap-5 md:gap-6 p-4 md:p-6 overflow-y-auto">
 
         <div>
-          <h1 className="text-3xl font-bold mb-2">Lançamentos</h1>
-          <p className="text-muted-foreground">Registre suas transações e compras com cartão</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Lançamentos</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Registre suas transações e compras com cartão</p>
         </div>
 
         <MonthlyEntriesSection

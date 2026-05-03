@@ -29,7 +29,7 @@ export function CardInvoices({ cardId, refreshKey }: CardInvoicesProps) {
   }, [cardId, refreshKey]);
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
+    <div className="bg-card border border-border rounded-xl p-4 md:p-5">
 
       <h2 className="text-lg font-semibold mb-4">
         Faturas
@@ -41,7 +41,7 @@ export function CardInvoices({ cardId, refreshKey }: CardInvoicesProps) {
 
           <div
             key={invoice.id}
-            className="flex justify-between items-center border rounded-lg p-3"
+            className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border rounded-lg p-3"
           >
 
             <div>
@@ -59,7 +59,7 @@ export function CardInvoices({ cardId, refreshKey }: CardInvoicesProps) {
 
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
 
               <p className="font-semibold">
                 {invoice.totalAmount.toLocaleString("pt-BR", {

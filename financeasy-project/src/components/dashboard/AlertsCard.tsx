@@ -119,17 +119,17 @@ export function AlertsCard({
   }
 
   return (
-    <div className="bg-card border border-border p-6 rounded-2xl w-full">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-semibold">Lembretes — pendências pessoais e recorrentes</h2>
+    <div className="bg-card border border-border p-4 md:p-6 rounded-2xl w-full">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-semibold">Lembretes - pendências pessoais e recorrentes</h2>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button>+ Alerta</Button>
+              <Button size="sm" className="shrink-0">+ Alerta</Button>
             </PopoverTrigger>
 
-            <PopoverContent side="bottom" className="w-80">
+            <PopoverContent side="bottom" className="w-[min(92vw,22rem)]">
               <PopoverHeader>
                 <p className="text-lg font-semibold">Criar novo alerta</p>
 
@@ -260,7 +260,7 @@ export function AlertsCard({
               setPage(1);
               setMonth(Number(e.target.value));
             }}
-            className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
+            className="px-3 py-2 border border-border rounded-lg bg-background text-sm min-w-38"
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
               <option key={m} value={m}>
@@ -277,7 +277,7 @@ export function AlertsCard({
               setPage(1);
               setYear(Number(e.target.value));
             }}
-            className="px-3 py-2 border border-border rounded-lg bg-background text-sm"
+            className="px-3 py-2 border border-border rounded-lg bg-background text-sm min-w-26"
           >
             {Array.from(
               { length: 10 },
@@ -311,16 +311,16 @@ export function AlertsCard({
               }
 
               return (
-                <li key={alert.id} className="flex items-center justify-between gap-3 py-2 border-b">
-                  <div className="flex items-center gap-3">
+                <li key={alert.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 border-b">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">{alert.categoryName}</p>
                       <p className="text-xs text-muted-foreground">{formatDateBR(alert.dueDate)}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 md:gap-3 w-full sm:w-auto">
                     <p className="text-sm font-semibold tabular-nums">{alert.expectedAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
 
                     {!alert.isPaid && (
@@ -366,7 +366,7 @@ export function AlertsCard({
             })}
           </ul>
 
-          <div className="flex justify-between items-center mt-3">
+          <div className="flex flex-wrap justify-between items-center gap-2 mt-3">
             <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
             <span className="text-sm text-muted-foreground">Página {pagination?.page ?? page} de {pagination?.totalPages ?? "?"}</span>
             <Button variant="outline" size="sm" disabled={pagination ? (pagination.page >= pagination.totalPages) : (alerts.length < pageSize)} onClick={() => setPage((p) => p + 1)}>Próxima</Button>

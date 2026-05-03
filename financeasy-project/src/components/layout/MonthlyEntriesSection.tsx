@@ -28,14 +28,14 @@ export function MonthlyEntriesSection({
   refreshDashboard
 }: Props) {
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 w-full">
+    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Lançamentos</h3>
+        <h3 className="text-base md:text-lg font-semibold text-foreground">Lançamentos</h3>
         <p className="text-sm text-muted-foreground">Transações alteram o saldo; compras no cartão são registradas separadamente e parceladas.</p>
       </div>
 
       <Tabs defaultValue="account">
-        <TabsList>
+        <TabsList className="grid grid-cols-2 w-full md:w-auto">
           <TabsTrigger value="account">Transações</TabsTrigger>
           <TabsTrigger value="card">Compras no cartão</TabsTrigger>
         </TabsList>

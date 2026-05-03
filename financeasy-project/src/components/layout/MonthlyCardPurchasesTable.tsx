@@ -193,17 +193,17 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
   const historyRows = purchasesData?.cardPurchases ?? [];
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 w-full">
+    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
       {/* Header igual ao padrão */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Compras no cartão</h3>
+          <h3 className="text-base md:text-lg font-semibold text-foreground">Compras no cartão</h3>
           <p className="text-sm text-muted-foreground">
             Use o lançamento rápido acima para registrar compras parceladas no cartão.
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button type="button" variant="secondary" onClick={addRow} disabled={!canAdd} title="Adicionar linha rápida">
             + Linha rápida
           </Button>
@@ -230,13 +230,13 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[190px]">Cartão</TableHead>
-              <TableHead className="min-w-[180px]">Categoria</TableHead>
-              <TableHead className="min-w-[140px] text-right">Valor</TableHead>
-              <TableHead className="min-w-[120px] text-right">Parcelas</TableHead>
-              <TableHead className="min-w-[150px] text-right">Data</TableHead>
-              <TableHead className="min-w-[240px]">Descrição</TableHead>
-              <TableHead className="w-[60px] text-right">Ações</TableHead>
+              <TableHead className="min-w-47.5">Cartão</TableHead>
+              <TableHead className="min-w-45">Categoria</TableHead>
+              <TableHead className="min-w-35 text-right">Valor</TableHead>
+              <TableHead className="min-w-30 text-right">Parcelas</TableHead>
+              <TableHead className="min-w-37.5 text-right">Data</TableHead>
+              <TableHead className="min-w-60">Descrição</TableHead>
+              <TableHead className="w-15 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -382,10 +382,10 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
 
       {/* Histórico igualzinho ao padrão das transações */}
       <div className="mt-10">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h4 className="text-base font-semibold text-foreground">Histórico</h4>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"
@@ -426,19 +426,19 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[180px]">Cartão</TableHead>
-                  <TableHead className="min-w-[160px]">Categoria</TableHead>
-                  <TableHead className="min-w-[140px] text-right">
+                  <TableHead className="min-w-45">Cartão</TableHead>
+                  <TableHead className="min-w-40">Categoria</TableHead>
+                  <TableHead className="min-w-35 text-right">
                     Valor
                   </TableHead>
-                  <TableHead className="min-w-[120px] text-right">
+                  <TableHead className="min-w-30 text-right">
                     Parcelas
                   </TableHead>
-                  <TableHead className="min-w-[140px] text-right">
+                  <TableHead className="min-w-35 text-right">
                     Data
                   </TableHead>
-                  <TableHead className="min-w-[240px]">Descrição</TableHead>
-                  <TableHead className="w-[60px] text-right">Ações</TableHead>
+                  <TableHead className="min-w-60">Descrição</TableHead>
+                  <TableHead className="w-15 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
 

@@ -9,26 +9,15 @@ export function ExpenseIncomeChart({
   totalExpense,
   totalIncome,
 }: ExpenseIncomeChartProps) {
-
-  const expensePercent =
-    totalIncome > 0
-      ? Math.min((totalExpense / totalIncome) * 100, 100)
-      : 0;
-
-  const availablePercent =
-    totalIncome > totalExpense
-      ? 100 - expensePercent
-      : 0;
-
   const available = totalIncome - totalExpense;
 
   return (
-    <div className="bg-card border border-border p-6 rounded-2xl w-full">
+    <div className="bg-card border border-border p-4 md:p-6 rounded-2xl w-full">
 
-      <div className="flex justify-between mb-4">
+      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between mb-4">
 
         <div>
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-lg md:text-xl font-semibold">
             Gastos x Renda
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -36,7 +25,7 @@ export function ExpenseIncomeChart({
           </p>
         </div>
 
-        <p className="font-semibold">
+        <p className="font-semibold text-sm md:text-base">
           Renda total: {totalIncome.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",

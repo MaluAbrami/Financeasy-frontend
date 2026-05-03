@@ -98,9 +98,9 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
   const purchaseErrors = validateCreatePurchase();
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
+    <div className="bg-card border border-border rounded-xl p-4 md:p-5">
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
 
         <h2 className="text-lg font-semibold">
           Compras do cartão
@@ -246,7 +246,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
 
           <div
             key={purchase.id}
-            className="flex justify-between items-center border rounded-lg p-3 hover:bg-muted/40 transition-colors"
+            className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border rounded-lg p-3 hover:bg-muted/40 transition-colors"
           >
 
             <div>
@@ -265,7 +265,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
 
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
 
               <p className="font-semibold">
                 {purchase.totalAmount.toLocaleString("pt-BR", {

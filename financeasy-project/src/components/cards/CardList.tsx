@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
   PopoverClose,
 } from "../ui/popover";
-import { MoreHorizontal, Trash2, Power } from "lucide-react";
+import { MoreHorizontal, Trash2, Power, X } from "lucide-react";
 import { ProportionBar } from "../layout/ProportionBar";
 
 interface CardListProps {
@@ -109,9 +109,9 @@ export function CardList({
   const createErrors = validateCreateCard();
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
+    <div className="bg-card border border-border rounded-xl p-4 md:p-5">
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h2 className="text-lg font-semibold">Seus cartões</h2>
 
         {/* Desktop: popover; Mobile: dialog */}
@@ -178,11 +178,13 @@ export function CardList({
           <Button size="sm" onClick={() => setShowMobileCreate(true)}>+ Cartão</Button>
 
           {showMobileCreate && (
-            <div className="fixed inset-0 z-50 flex items-start pt-16 px-4">
-              <div className="bg-card w-full rounded-lg p-4 shadow-lg">
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-start pt-16 px-4">
+              <div className="bg-card w-full rounded-lg p-4 shadow-lg border border-border">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Novo cartão</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setShowMobileCreate(false)} aria-label="Fechar">✕</Button>
+                  <Button variant="ghost" size="icon" onClick={() => setShowMobileCreate(false)} aria-label="Fechar">
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
 
                 <div className="flex flex-col gap-3">
@@ -230,7 +232,7 @@ export function CardList({
 
       {/* LISTA DE CARTÕES */}
 
-      <div className="flex gap-4 overflow-x-auto">
+      <div className="flex gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory">
 
           {cards.map((card) => {
 
@@ -240,7 +242,7 @@ export function CardList({
             <div
               key={card.id}
               onClick={() => onSelectCard(card)}
-              className={`relative min-w-[320px] p-4 rounded-xl border cursor-pointer ${isSelected ? "border-primary" : "border-border"}`}
+              className={`relative min-w-70 md:min-w-80 p-4 rounded-xl border cursor-pointer snap-start transition-colors ${isSelected ? "border-primary bg-primary/5" : "border-border"}`}
             >
 
               <div className="absolute top-3 right-3">
@@ -320,8 +322,8 @@ export function CardList({
 
       {/* Popover de confirmação: deletar/desativar cartão */}
       {cardToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-lg p-6 shadow-lg max-w-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card border border-border rounded-lg p-5 md:p-6 shadow-lg w-full max-w-sm">
             <h3 className="text-lg font-semibold mb-2">
               {canDeleteCard(cardToDelete) ? "Deletar cartão?" : "Desativar cartão?"}
             </h3>

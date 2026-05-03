@@ -57,7 +57,7 @@ export function Cards() {
 
       <NavBar />
 
-      <div className="flex flex-col w-full p-6 gap-6 overflow-y-auto">
+      <div className="flex flex-col w-full p-4 md:p-6 gap-5 md:gap-6 overflow-y-auto">
         <CardList
           selectedCard={selectedCard}
           onSelectCard={setSelectedCard}

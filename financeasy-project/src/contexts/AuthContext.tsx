@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import { authStorage } from "../storage/auth.storage";
-import { string } from "zod";
 
 type AuthContextValue = {
     token: string | null;

@@ -34,57 +34,57 @@ export function Dashboard() {
       <NavBar />
 
       {/* CONTEÚDO COM SCROLL */}
-      <div className="flex flex-col w-full gap-6 p-4 md:p-6 overflow-y-auto">
+      <div className="flex flex-col w-full gap-5 md:gap-6 p-4 md:p-6 overflow-y-auto">
 
         {/* Cabeçalho */}
         <div>
-          <h1 className="text-3xl font-bold">Bem-vindo de volta!</h1>
-          <p className="text-muted-foreground">Aqui está um resumo da sua situação financeira</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Bem-vindo de volta!</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Aqui está um resumo da sua situação financeira</p>
         </div>
 
         {/* Cards de Navegação Principais */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           
           <div 
             onClick={() => navigate("/entries")}
-            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+            className="bg-card border border-border rounded-xl p-4 md:p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all md:hover:scale-[1.03]"
           >
-            <FileText className="w-8 h-8 text-blue-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-1">Lançamentos</h3>
+            <FileText className="w-7 h-7 md:w-8 md:h-8 text-blue-500 mb-3" />
+            <h3 className="font-semibold text-base md:text-lg mb-1">Lançamentos</h3>
             <p className="text-sm text-muted-foreground">Registre transações e compras</p>
           </div>
 
           <div 
             onClick={() => navigate("/cards")}
-            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+            className="bg-card border border-border rounded-xl p-4 md:p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all md:hover:scale-[1.03]"
           >
-            <CreditCard className="w-8 h-8 text-purple-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-1">Cartões</h3>
+            <CreditCard className="w-7 h-7 md:w-8 md:h-8 text-purple-500 mb-3" />
+            <h3 className="font-semibold text-base md:text-lg mb-1">Cartões</h3>
             <p className="text-sm text-muted-foreground">Gerencie seus cartões de crédito</p>
           </div>
 
           <div 
             onClick={() => navigate("/simulations")}
-            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+            className="bg-card border border-border rounded-xl p-4 md:p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all md:hover:scale-[1.03]"
           >
-            <TrendingUp className="w-8 h-8 text-green-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-1">Simulações</h3>
+            <TrendingUp className="w-7 h-7 md:w-8 md:h-8 text-green-500 mb-3" />
+            <h3 className="font-semibold text-base md:text-lg mb-1">Simulações</h3>
             <p className="text-sm text-muted-foreground">Simule cenários financeiros</p>
           </div>
 
           <div 
             onClick={() => window.scrollTo(0, document.body.scrollHeight)}
-            className="bg-card border border-border rounded-lg p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all hover:scale-105"
+            className="bg-card border border-border rounded-xl p-4 md:p-6 cursor-pointer hover:border-primary hover:shadow-lg transition-all md:hover:scale-[1.03]"
           >
-            <Bell className="w-8 h-8 text-amber-500 mb-3" />
-            <h3 className="font-semibold text-lg mb-1">Lembretes</h3>
+            <Bell className="w-7 h-7 md:w-8 md:h-8 text-amber-500 mb-3" />
+            <h3 className="font-semibold text-base md:text-lg mb-1">Lembretes</h3>
             <p className="text-sm text-muted-foreground">Veja seus compromissos</p>
           </div>
 
         </div>
 
         {/* Seções principais */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mt-2 md:mt-4">
 
           {/* Contas Bancárias */}
           <div className="lg:col-span-2">

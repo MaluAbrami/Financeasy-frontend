@@ -68,13 +68,13 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
   }
 
   return (
-    <div className="bg-card border border-border p-6 rounded-2xl">
+    <div className="bg-card border border-border p-4 md:p-6 rounded-2xl">
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
 
-        <h2 className="text-xl font-semibold">Suas contas</h2>
+        <h2 className="text-lg md:text-xl font-semibold">Suas contas</h2>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
 
           {/* POPOVER NOVA CONTA */}
           <Popover>
@@ -165,13 +165,13 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
       {/* CONTAS */}
 
-      <div className="mt-4 flex gap-4 overflow-x-auto pb-2">
+      <div className="mt-4 flex gap-3 md:gap-4 overflow-x-auto pb-2 snap-x snap-mandatory">
 
         {accounts?.map((acc) => (
 
           <div
             key={acc.id}
-            className="min-w-55 bg-card border border-border rounded-xl p-4"
+            className="min-w-55 md:min-w-55 bg-card border border-border rounded-xl p-4 snap-start"
           >
 
             <div className="flex items-start justify-between gap-2">
@@ -243,7 +243,7 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
       {/* SALDO TOTAL */}
 
-      <span>
+      <span className="block mt-3 text-sm md:text-base">
         Saldo total: {accounts
           .reduce((sum, acc) => sum + acc.balance, 0)
           .toLocaleString("pt-BR", {
