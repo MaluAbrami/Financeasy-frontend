@@ -28,7 +28,7 @@ export function Dashboard() {
   } = useDashboardData();
 
   return (
-    <section className="flex w-full h-screen overflow-hidden">
+    <section className="flex flex-col md:flex-row w-full h-screen overflow-hidden">
 
       {/* NAVBAR FIXO */}
       <NavBar />

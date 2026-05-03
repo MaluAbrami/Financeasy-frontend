@@ -16,5 +16,9 @@ export const cardService = {
         var response = await apiClient.post<CreateCard>(`${path}`, card);
 
         return response;
+    },
+
+    async delete(id: string) {
+        await apiClient.del(`${path}/${id}`);
     }
 }

@@ -53,7 +53,7 @@ export function Cards() {
   }, []);
   
   return (
-    <section className="flex w-full h-screen overflow-hidden">
+    <section className="flex flex-col md:flex-row w-full h-screen overflow-hidden">
 
       <NavBar />
 

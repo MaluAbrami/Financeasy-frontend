@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
   PopoverClose,
 } from "../ui/popover";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2, Power } from "lucide-react";
 import { ProportionBar } from "../layout/ProportionBar";
 
 interface CardListProps {
@@ -42,6 +42,7 @@ export function CardList({
     closingDay: 1
   });
   const [showMobileCreate, setShowMobileCreate] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<CardResponse | null>(null);
 
   async function handleCreateCard() {
     try {
@@ -85,6 +86,20 @@ export function CardList({
     });
 
     setCards(data.cards ?? []);
+  }
+
+  async function handleDeleteCard(card: CardResponse) {
+    try {
+      await cardService.delete(card.id);
+      await loadCards();
+      setCardToDelete(null);
+    } catch (error) {
+      console.error("Erro ao deletar cartão", error);
+    }
+  }
+
+  function canDeleteCard(card: CardResponse): boolean {
+    return card.usedLimit === 0;
   }
 
   useEffect(() => {
@@ -244,6 +259,18 @@ export function CardList({
                       <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onSelectCard(card); }}>
                         Ver faturas
                       </Button>
+                      <div className="border-t my-1"></div>
+                      {canDeleteCard(card) ? (
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setCardToDelete(card); }}>
+                          <Trash2 size={14} className="mr-2" />
+                          Deletar
+                        </Button>
+                      ) : (
+                        <Button variant="ghost" size="sm" className="text-amber-600 hover:text-amber-600" onClick={(e) => { e.stopPropagation(); setCardToDelete(card); }}>
+                          <Power size={14} className="mr-2" />
+                          Desativar
+                        </Button>
+                      )}
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -290,6 +317,34 @@ export function CardList({
         })}
 
       </div>
+
+      {/* Popover de confirmação: deletar/desativar cartão */}
+      {cardToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card border border-border rounded-lg p-6 shadow-lg max-w-sm">
+            <h3 className="text-lg font-semibold mb-2">
+              {canDeleteCard(cardToDelete) ? "Deletar cartão?" : "Desativar cartão?"}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              {canDeleteCard(cardToDelete)
+                ? `Tem certeza que deseja deletar o cartão "${cardToDelete.name}"? Esta ação não pode ser desfeita.`
+                : `O cartão "${cardToDelete.name}" possui histórico ou saldo. Ele será desativado em vez de deletado.`}
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" size="sm" onClick={() => setCardToDelete(null)}>
+                Cancelar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={canDeleteCard(cardToDelete) ? "destructive" : "default"}
+                onClick={() => handleDeleteCard(cardToDelete)}
+              >
+                {canDeleteCard(cardToDelete) ? "Deletar" : "Desativar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
