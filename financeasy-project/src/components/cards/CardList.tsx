@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
   PopoverClose,
 } from "../ui/popover";
-import { MoreHorizontal, Trash2, Power, X } from "lucide-react";
+import { MoreHorizontal, Trash2, Power, X, Edit } from "lucide-react";
 import { ProportionBar } from "../layout/ProportionBar";
 
 interface CardListProps {
@@ -43,6 +43,16 @@ export function CardList({
   });
   const [showMobileCreate, setShowMobileCreate] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<CardResponse | null>(null);
+  const [cardToEdit, setCardToEdit] = useState<CardResponse | null>(null);
+  const [editFormState, setEditFormState] = useState({
+    name: "",
+    creditLimit: 0,
+    closingDay: 0,
+    dueDay: 0,
+    closingDayChanged: false,
+    dueDayChanged: false,
+  });
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({});
 
   async function handleCreateCard() {
     try {
@@ -100,6 +110,88 @@ export function CardList({
 
   function canDeleteCard(card: CardResponse): boolean {
     return card.usedLimit === 0;
+  }
+
+  function openEditModal(card: CardResponse) {
+    setCardToEdit(card);
+    setEditFormState({
+      name: card.name,
+      creditLimit: card.creditLimit,
+      closingDay: card.closingDay,
+      dueDay: card.dueDay,
+      closingDayChanged: false,
+      dueDayChanged: false,
+    });
+    setEditErrors({});
+  }
+
+  function validateEditForm() {
+    const errors: Record<string, string> = {};
+
+    if (!editFormState.name || editFormState.name.trim().length < 2) {
+      errors.name = "Nome deve ter ao menos 2 caracteres";
+    }
+
+    if (editFormState.creditLimit <= 0) {
+      errors.creditLimit = "Limite deve ser maior que zero";
+    }
+
+    if (
+      !Number.isInteger(editFormState.closingDay) ||
+      editFormState.closingDay < 1 ||
+      editFormState.closingDay > 31
+    ) {
+      errors.closingDay = "Dia de fechamento inválido (1-31)";
+    }
+
+    if (
+      !Number.isInteger(editFormState.dueDay) ||
+      editFormState.dueDay < 1 ||
+      editFormState.dueDay > 31
+    ) {
+      errors.dueDay = "Dia de vencimento inválido (1-31)";
+    }
+
+    if (editFormState.closingDayChanged && !editFormState.dueDayChanged) {
+      errors.dueDay = "Altere também o dia de vencimento se mudar fechamento";
+    }
+
+    if (editFormState.dueDayChanged && !editFormState.closingDayChanged) {
+      errors.closingDay = "Altere também o dia de fechamento se mudar vencimento";
+    }
+
+    return errors;
+  }
+
+  async function handleEditCard() {
+    const errors = validateEditForm();
+    setEditErrors(errors);
+
+    if (Object.keys(errors).length > 0 || !cardToEdit) return;
+
+    try {
+      await cardService.update({
+        cardId: cardToEdit.id,
+        name: editFormState.name,
+        creditLimit: editFormState.creditLimit,
+        closingDay: editFormState.closingDay,
+        dueDay: editFormState.dueDay,
+      });
+
+      await loadCards();
+      setCardToEdit(null);
+      setEditFormState({
+        name: "",
+        creditLimit: 0,
+        closingDay: 0,
+        dueDay: 0,
+        closingDayChanged: false,
+        dueDayChanged: false,
+      });
+    } catch (error) {
+      console.error("Erro ao editar cartão", error);
+      setEditErrors({ submit: "Erro ao salvar alterações" });
+    }
   }
 
   useEffect(() => {
@@ -261,6 +353,10 @@ export function CardList({
                       <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onSelectCard(card); }}>
                         Ver faturas
                       </Button>
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditModal(card); }}>
+                        <Edit size={14} className="mr-2" />
+                        Editar
+                      </Button>
                       <div className="border-t my-1"></div>
                       {canDeleteCard(card) ? (
                         <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setCardToDelete(card); }}>
@@ -342,6 +438,107 @@ export function CardList({
                 onClick={() => handleDeleteCard(cardToDelete)}
               >
                 {canDeleteCard(cardToDelete) ? "Deletar" : "Desativar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de edição de cartão */}
+      {cardToEdit && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg p-5 md:p-6 shadow-lg w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4">Editar cartão: {cardToEdit.name}</h3>
+
+            {editErrors.submit && (
+              <p className="text-sm text-destructive mb-3">{editErrors.submit}</p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-sm font-semibold block mb-1">Nome do cartão</label>
+                <input
+                  type="text"
+                  className={`w-full border rounded-md px-3 py-2 text-sm ${editErrors.name ? "border-destructive" : "border-border"}`}
+                  value={editFormState.name}
+                  onChange={(e) => setEditFormState((prev) => ({ ...prev, name: e.target.value }))}
+                  aria-invalid={!!editErrors.name}
+                  aria-describedby={editErrors.name ? "err-edit-name" : undefined}
+                />
+                {editErrors.name && <p id="err-edit-name" className="text-xs text-destructive mt-1">{editErrors.name}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Limite de crédito</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  className={`w-full border rounded-md px-3 py-2 text-sm ${editErrors.creditLimit ? "border-destructive" : "border-border"}`}
+                  value={editFormState.creditLimit}
+                  onChange={(e) => setEditFormState((prev) => ({ ...prev, creditLimit: Number(e.target.value) }))}
+                  aria-invalid={!!editErrors.creditLimit}
+                  aria-describedby={editErrors.creditLimit ? "err-edit-limit" : undefined}
+                />
+                {editErrors.creditLimit && <p id="err-edit-limit" className="text-xs text-destructive mt-1">{editErrors.creditLimit}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Dia de fechamento</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    className={`w-full border rounded-md px-3 py-2 text-sm ${editErrors.closingDay ? "border-destructive" : "border-border"}`}
+                    value={editFormState.closingDay}
+                    onChange={(e) =>
+                      setEditFormState((prev) => ({
+                        ...prev,
+                        closingDay: Number(e.target.value),
+                        closingDayChanged: true,
+                      }))
+                    }
+                    aria-invalid={!!editErrors.closingDay}
+                    aria-describedby={editErrors.closingDay ? "err-edit-closing" : undefined}
+                  />
+                  {editErrors.closingDay && <p id="err-edit-closing" className="text-xs text-destructive mt-1">{editErrors.closingDay}</p>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Dia de vencimento</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    className={`w-full border rounded-md px-3 py-2 text-sm ${editErrors.dueDay ? "border-destructive" : "border-border"}`}
+                    value={editFormState.dueDay}
+                    onChange={(e) =>
+                      setEditFormState((prev) => ({
+                        ...prev,
+                        dueDay: Number(e.target.value),
+                        dueDayChanged: true,
+                      }))
+                    }
+                    aria-invalid={!!editErrors.dueDay}
+                    aria-describedby={editErrors.dueDay ? "err-edit-due" : undefined}
+                  />
+                  {editErrors.dueDay && <p id="err-edit-due" className="text-xs text-destructive mt-1">{editErrors.dueDay}</p>}
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 Se alterar o dia de fechamento, você também deve alterar o dia de vencimento (e vice-versa).
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <Button variant="outline" size="sm" onClick={() => setCardToEdit(null)}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={handleEditCard}>
+                Salvar alterações
               </Button>
             </div>
           </div>
