@@ -19,7 +19,7 @@ import {
 } from "../ui/popover";
 
 import { Button } from "../ui/button";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, X } from "lucide-react";
 
 interface AlertsProps {
   alerts: AlertResponse[];
@@ -45,6 +45,7 @@ export function AlertsCard({
 
   const [page, setPage] = useState<number>(() => pagination?.page ?? 1);
   const pageSize = 2;
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [newAlert, setNewAlert] = useState<CreateAlert>({
     categoryId: "",
@@ -64,6 +65,18 @@ export function AlertsCard({
   ];
 
   const [openId, setOpenId] = useState<string | null>(null);
+  const [alertErrors, setAlertErrors] = useState<Record<string, string>>({});
+
+  function validateCreateAlert() {
+    const errors: Record<string, string> = {};
+
+    if (!newAlert.categoryId) errors.categoryId = "Selecione uma categoria";
+    if (!newAlert.expectedAmount || newAlert.expectedAmount <= 0) errors.expectedAmount = "Valor deve ser maior que zero";
+    if (!newAlert.dueDate) errors.dueDate = "Data de vencimento é obrigatória";
+
+    setAlertErrors(errors);
+    return errors;
+  }
 
   useEffect(() => {
     loadAlerts(page, pageSize);
@@ -77,6 +90,9 @@ export function AlertsCard({
   }, [pagination]);
 
   async function handleCreateAlert() {
+    const errors = validateCreateAlert();
+    if (Object.keys(errors).length > 0) return;
+
     try {
       await alertService.create(newAlert);
 
@@ -91,6 +107,8 @@ export function AlertsCard({
         startDate: null,
         endDate: null,
       });
+      setAlertErrors({});
+      setShowCreateModal(false);
     } catch (error) {
       console.error("Erro ao criar novo alerta", error);
     }
@@ -124,136 +142,7 @@ export function AlertsCard({
         <h2 className="text-lg md:text-xl font-semibold">Lembretes - pendências pessoais e recorrentes</h2>
 
         <div className="flex flex-wrap gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button size="sm" className="shrink-0">+ Alerta</Button>
-            </PopoverTrigger>
-
-            <PopoverContent side="bottom" className="w-[min(92vw,22rem)]">
-              <PopoverHeader>
-                <p className="text-lg font-semibold">Criar novo alerta</p>
-
-                <div className="flex flex-col gap-3 mt-3">
-                  <p>Categoria</p>
-
-                  <select
-                    className="border rounded-md px-3 py-2 text-sm bg-secondary text-foreground"
-                    value={newAlert.categoryId}
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        categoryId: e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">Selecione uma categoria</option>
-
-                    {categories?.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  <p>Tipo de recorrência</p>
-
-                  <select
-                    className="border rounded-md px-3 py-2 text-sm bg-secondary text-foreground"
-                    value={newAlert.recurrenceType}
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        recurrenceType: e.target.value,
-                      }))
-                    }
-                  >
-                    {recurrenceOptions.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-
-                  <p>Valor esperado</p>
-
-                  <input
-                    type="number"
-                    className="border rounded-md px-3 py-2 text-sm"
-                    value={newAlert.expectedAmount}
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        expectedAmount: Number(e.target.value),
-                      }))
-                    }
-                  />
-
-                  <p>Data de vencimento</p>
-
-                  <input
-                    type="date"
-                    className="border rounded-md px-3 py-2 text-sm"
-                    value={newAlert.dueDate.toISOString().split("T")[0]}
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        dueDate: new Date(e.target.value),
-                      }))
-                    }
-                  />
-
-                  <p>Data inicial</p>
-
-                  <input
-                    type="date"
-                    className="border rounded-md px-3 py-2 text-sm"
-                    value={
-                      newAlert.startDate
-                        ? newAlert.startDate.toISOString().split("T")[0]
-                        : ""
-                    }
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        startDate: new Date(e.target.value),
-                      }))
-                    }
-                  />
-
-                  <p>Data final</p>
-
-                  <input
-                    type="date"
-                    className="border rounded-md px-3 py-2 text-sm"
-                    value={
-                      newAlert.endDate
-                        ? newAlert.endDate.toISOString().split("T")[0]
-                        : ""
-                    }
-                    onChange={(e) =>
-                      setNewAlert((prev) => ({
-                        ...prev,
-                        endDate: new Date(e.target.value),
-                      }))
-                    }
-                  />
-
-                  <Button
-                    className="mt-3"
-                    size="sm"
-                    onClick={handleCreateAlert}
-                    disabled={
-                      !newAlert.categoryId ||
-                      !newAlert.expectedAmount ||
-                      !newAlert.dueDate
-                    }
-                  >
-                    Criar
-                  </Button>
-                </div>
-              </PopoverHeader>
-            </PopoverContent>
-          </Popover>
+          <Button size="sm" className="shrink-0" onClick={() => setShowCreateModal(true)}>+ Alerta</Button>
           <select
             value={month}
             onChange={(e) => {
@@ -373,6 +262,115 @@ export function AlertsCard({
           </div>
         </div>
       )}
+
+      {/* Modal de criação de alerta */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg p-5 md:p-6 shadow-lg w-full max-w-md max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Criar novo alerta</h3>
+              <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)} aria-label="Fechar">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-sm font-semibold block mb-1">Categoria</label>
+                <select
+                  className={`w-full border rounded-md px-3 py-2 text-sm bg-card ${alertErrors.categoryId ? 'border-destructive' : ''}`}
+                  value={newAlert.categoryId}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, categoryId: e.target.value }))}
+                  aria-invalid={!!alertErrors.categoryId}
+                  aria-describedby={alertErrors.categoryId ? 'err-category' : undefined}
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories?.map((category) => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
+                {alertErrors.categoryId && <p id="err-category" className="text-xs text-destructive mt-1">{alertErrors.categoryId}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Tipo de recorrência</label>
+                <select
+                  className="w-full border rounded-md px-3 py-2 text-sm bg-card"
+                  value={newAlert.recurrenceType}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, recurrenceType: e.target.value }))}
+                >
+                  {recurrenceOptions.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Valor esperado</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  className={`w-full border rounded-md px-3 py-2 text-sm ${alertErrors.expectedAmount ? 'border-destructive' : ''}`}
+                  value={newAlert.expectedAmount}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, expectedAmount: Number(e.target.value) }))}
+                  aria-invalid={!!alertErrors.expectedAmount}
+                  aria-describedby={alertErrors.expectedAmount ? 'err-amount' : undefined}
+                />
+                {alertErrors.expectedAmount && <p id="err-amount" className="text-xs text-destructive mt-1">{alertErrors.expectedAmount}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Data de vencimento</label>
+                <input
+                  type="date"
+                  className={`w-full border rounded-md px-3 py-2 text-sm ${alertErrors.dueDate ? 'border-destructive' : ''}`}
+                  value={newAlert.dueDate.toISOString().split("T")[0]}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, dueDate: new Date(e.target.value) }))}
+                  aria-invalid={!!alertErrors.dueDate}
+                  aria-describedby={alertErrors.dueDate ? 'err-date' : undefined}
+                />
+                {alertErrors.dueDate && <p id="err-date" className="text-xs text-destructive mt-1">{alertErrors.dueDate}</p>}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Data inicial (opcional)</label>
+                <input
+                  type="date"
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  value={newAlert.startDate ? newAlert.startDate.toISOString().split("T")[0] : ""}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, startDate: new Date(e.target.value) }))}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Data final (opcional)</label>
+                <input
+                  type="date"
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  value={newAlert.endDate ? newAlert.endDate.toISOString().split("T")[0] : ""}
+                  onChange={(e) => setNewAlert((prev) => ({ ...prev, endDate: new Date(e.target.value) }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <Button variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleCreateAlert}
+                disabled={Object.keys(alertErrors).length > 0}
+              >
+                Criar alerta
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -24,6 +24,7 @@ interface AccountsCardProps {
 
 export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCardProps) {
 
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [createAccount, setCreateAccount] = useState<CreateBankAccount>({
     bank: "",
     balance: 0
@@ -42,6 +43,7 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
         bank: "",
         balance: 0
       });
+      setShowCreateModal(false);
 
     } catch (error) {
       console.error("Erro ao criar conta", error);
@@ -76,62 +78,9 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
 
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
 
-          {/* POPOVER NOVA CONTA */}
-          <Popover>
-
-            <PopoverTrigger asChild>
-              <Button size="sm">
-                + Conta
-              </Button>
-            </PopoverTrigger>
-
-            <PopoverContent>
-
-              <PopoverHeader>
-                <PopoverTitle>Nova conta</PopoverTitle>
-              </PopoverHeader>
-
-              <div className="flex flex-col gap-3 mt-3">
-
-                {/* Banco */}
-                <input
-                  className="border rounded-md px-3 py-2 text-sm"
-                  placeholder="Nome do banco"
-                  value={createAccount.bank}
-                  onChange={(e) =>
-                    setCreateAccount((prev) => ({
-                      ...prev,
-                      bank: e.target.value
-                    }))
-                  }
-                />
-
-                {/* Saldo */}
-                <input
-                  type="number"
-                  className="border rounded-md px-3 py-2 text-sm"
-                  placeholder="Saldo inicial"
-                  value={createAccount.balance}
-                  onChange={(e) =>
-                    setCreateAccount((prev) => ({
-                      ...prev,
-                      balance: Number(e.target.value)
-                    }))
-                  }
-                />
-
-                <Button
-                  size="sm"
-                  onClick={handleCreateAccount}
-                >
-                  Criar conta
-                </Button>
-
-              </div>
-
-            </PopoverContent>
-
-          </Popover>
+          <Button size="sm" onClick={() => setShowCreateModal(true)}>
+            + Conta
+          </Button>
 
           {/* PAGINAÇÃO */}
 
@@ -251,6 +200,50 @@ export function AccountsCard({ accounts, pagination, loadAccounts }: AccountsCar
             currency: "BRL",
           })}
       </span>
+
+      {/* Modal de criação de conta */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg p-5 md:p-6 shadow-lg w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4">Nova conta</h3>
+
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="text-sm font-semibold block mb-1">Nome do banco</label>
+                <input
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  placeholder="Ex: Banco Itaú"
+                  value={createAccount.bank}
+                  onChange={(e) => setCreateAccount((prev) => ({ ...prev, bank: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold block mb-1">Saldo inicial</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  inputMode="decimal"
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  placeholder="0,00"
+                  value={createAccount.balance}
+                  onChange={(e) => setCreateAccount((prev) => ({ ...prev, balance: Number(e.target.value) }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-5">
+              <Button variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={handleCreateAccount}>
+                Criar conta
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

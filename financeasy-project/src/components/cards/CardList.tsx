@@ -10,10 +10,7 @@ import type { BankAccountResponse } from "@/models/bankAccount/BankAccountRespon
 import {
   Popover,
   PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
   PopoverTrigger,
-  PopoverClose,
 } from "../ui/popover";
 import { MoreHorizontal, Trash2, Power, X, Edit } from "lucide-react";
 import { ProportionBar } from "../layout/ProportionBar";
@@ -206,68 +203,9 @@ export function CardList({
       <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <h2 className="text-lg font-semibold">Seus cartões</h2>
 
-        {/* Desktop: popover; Mobile: dialog */}
-        <div className="hidden sm:block">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button size="sm">+ Cartão</Button>
-            </PopoverTrigger>
+        <Button size="sm" onClick={() => setShowMobileCreate(true)}>+ Cartão</Button>
 
-            <PopoverContent className="w-80">
-              <PopoverHeader>
-                <PopoverTitle className="text-lg">Novo cartão</PopoverTitle>
-              </PopoverHeader>
-
-              <div className="flex flex-col gap-3 mt-3">
-                <label className="font-semibold">Banco</label>
-                <select
-                  className={`border rounded-md px-3 py-2 text-sm ${createErrors.bankAccountId ? 'border-destructive' : ''}`}
-                  value={createCard.bankAccountId}
-                  onChange={(e) => setCreateCard((prev) => ({ ...prev, bankAccountId: e.target.value }))}
-                  aria-invalid={!!createErrors.bankAccountId}
-                  aria-describedby={createErrors.bankAccountId ? 'err-bank' : undefined}
-                >
-                  <option value="" className="bg-card">Selecione uma conta</option>
-                  {banksAccounts?.map((bank) => (
-                    <option key={bank.id} value={bank.id} className="bg-card">{bank.bank}</option>
-                  ))}
-                </select>
-                {createErrors.bankAccountId && <p id="err-bank" className="text-xs text-destructive mt-1">{createErrors.bankAccountId}</p>}
-
-                <label>Nome</label>
-                <input className={`border rounded-md px-3 py-2 text-sm ${createErrors.name ? 'border-destructive' : ''}`} placeholder="Nome do cartão" value={createCard.name} onChange={(e) => setCreateCard((prev) => ({ ...prev, name: e.target.value }))} aria-invalid={!!createErrors.name} aria-describedby={createErrors.name ? 'err-name' : undefined} />
-                {createErrors.name && <p id="err-name" className="text-xs text-destructive mt-1">{createErrors.name}</p>}
-
-                <label>Limite de crédito</label>
-                <input type="number" min={0} step={0.01} inputMode="decimal" className={`border rounded-md px-3 py-2 text-sm ${createErrors.creditLimit ? 'border-destructive' : ''}`} placeholder="Limite de crédito" value={createCard.creditLimit} onChange={(e) => setCreateCard((prev) => ({ ...prev, creditLimit: Number(e.target.value) }))} aria-invalid={!!createErrors.creditLimit} aria-describedby={createErrors.creditLimit ? 'err-limit' : undefined} />
-                {createErrors.creditLimit && <p id="err-limit" className="text-xs text-destructive mt-1">{createErrors.creditLimit}</p>}
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label>Dia de fechamento</label>
-                    <input type="number" min={1} max={31} className={`border rounded-md px-3 py-2 text-sm w-full ${createErrors.closingDay ? 'border-destructive' : ''}`} placeholder="Dia de fechamento" value={createCard.closingDay} onChange={(e) => setCreateCard((prev) => ({ ...prev, closingDay: Number(e.target.value) }))} aria-invalid={!!createErrors.closingDay} aria-describedby={createErrors.closingDay ? 'err-closing' : undefined} />
-                    {createErrors.closingDay && <p id="err-closing" className="text-xs text-destructive mt-1">{createErrors.closingDay}</p>}
-                  </div>
-                  <div>
-                    <label>Dia de vencimento</label>
-                    <input type="number" min={1} max={31} className={`border rounded-md px-3 py-2 text-sm w-full ${createErrors.dueDay ? 'border-destructive' : ''}`} placeholder="Dia de vencimento" value={createCard.dueDay} onChange={(e) => setCreateCard((prev) => ({ ...prev, dueDay: Number(e.target.value) }))} aria-invalid={!!createErrors.dueDay} aria-describedby={createErrors.dueDay ? 'err-due' : undefined} />
-                    {createErrors.dueDay && <p id="err-due" className="text-xs text-destructive mt-1">{createErrors.dueDay}</p>}
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <PopoverClose asChild>
-                    <Button size="sm" variant="ghost">Cancelar</Button>
-                  </PopoverClose>
-                  <Button size="sm" onClick={handleCreateCard} disabled={Object.keys(createErrors).length > 0}>Criar cartão</Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="block sm:hidden">
-          <Button size="sm" onClick={() => setShowMobileCreate(true)}>+ Cartão</Button>
+      </div>
 
           {showMobileCreate && (
             <div className="fixed inset-0 z-50 bg-black/50 flex items-start pt-16 px-4">
@@ -318,9 +256,6 @@ export function CardList({
               </div>
             </div>
           )}
-        </div>
-
-      </div>
 
       {/* LISTA DE CARTÕES */}
 

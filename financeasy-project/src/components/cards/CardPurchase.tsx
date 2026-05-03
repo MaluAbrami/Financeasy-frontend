@@ -8,14 +8,13 @@ import {
   Popover,
   PopoverContent,
   PopoverHeader,
-  PopoverTitle,
   PopoverTrigger
 } from "../ui/popover";
 
 import type { CreateCardPurchase } from "@/models/card/CreateCardPurchase";
 import type { CategoryResponse } from "@/models/category/CategoryResponse";
 
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 interface CardPurchasesProps {
   cardId: string;
@@ -26,6 +25,7 @@ interface CardPurchasesProps {
 export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPurchasesProps) {
   const [openPurchaseId, setOpenPurchaseId] = useState<string | null>(null);
   const [purchases, setPurchases] = useState<CardPurchaseResponse[] | null>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [createCardPurchase, setCreateCardPurchase] = useState<Omit<CreateCardPurchase, "cardId">>({
     categoryId: "",
@@ -52,8 +52,7 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
         installments: 0,
         purchaseDate: new Date(),
         description: ""
-      });
-    } catch (error) {
+      });      setShowCreateModal(false);    } catch (error) {
       console.error("Erro ao criar compra nova no cartão", error);
     }
   }
@@ -106,23 +105,23 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
           Compras do cartão
         </h2>
 
-        <Popover>
+        <Button size="sm" onClick={() => setShowCreateModal(true)}>
+          Nova compra
+        </Button>
 
-          <PopoverTrigger asChild>
-            <Button size="sm">
-              Nova compra
-            </Button>
-          </PopoverTrigger>
+      </div>
 
-          <PopoverContent>
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg p-5 md:p-6 shadow-lg w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Nova compra</h3>
+              <Button variant="ghost" size="icon" onClick={() => setShowCreateModal(false)} aria-label="Fechar">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <PopoverHeader>
-
-              <PopoverTitle className="text-lg">
-                Nova compra
-              </PopoverTitle>
-
-              <div className="flex flex-col gap-3 mt-3">
+            <div className="flex flex-col gap-3">
 
                 <label className="font-semibold">Categoria da compra</label>
                 <select
@@ -221,24 +220,20 @@ export function CardPurchases({ cardId, categories, onPurchaseChanged }: CardPur
                   }
                 />
 
+              <div className="flex justify-end gap-3 mt-5">
+                <Button variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
                 <Button
-                  className="mt-4"
                   size="sm"
                   onClick={handleCreatePurchase}
                   disabled={Object.keys(purchaseErrors).length > 0}
                 >
                   Lançar compra
                 </Button>
-
               </div>
-
-            </PopoverHeader>
-
-          </PopoverContent>
-
-        </Popover>
-
-      </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2">
 
