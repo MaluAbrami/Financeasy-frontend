@@ -17,12 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, Trash2, Calendar as CalendarIcon, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
-import { Trash2 } from "lucide-react";
 
 type Draft = {
   id: string;
@@ -70,6 +69,8 @@ function formatDateBRFromISO(dateIso: string) {
 export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props) {
   const [rows, setRows] = useState<Draft[]>(() => [newRow()]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   const canAdd = cards.length > 0 && categories.length > 0;
 
@@ -153,8 +154,6 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
   const page = purchasesData?.pagination?.page ?? 1;
   const totalPages = purchasesData?.pagination?.totalPages ?? 1;
 
-  const [openId, setOpenId] = useState<string | null>(null);
-
   async function loadPurchases(targetPage: number) {
     try {
       setLoading(true);
@@ -163,7 +162,7 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
       const pagination: PaginationRequest = {
         page: targetPage,
         pageSize: 10,
-        orderBy: "PurchaseDate", // se no back for outro nome, troque aqui
+        orderBy: "PurchaseDate",
         direction: "Desc",
       };
 
@@ -185,7 +184,6 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
     }
   }
 
-
   useEffect(() => {
     loadPurchases(1);
   }, []);
@@ -193,304 +191,652 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
   const historyRows = purchasesData?.cardPurchases ?? [];
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
-      {/* Header igual ao padrão */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h3 className="text-base md:text-lg font-semibold text-foreground">Compras no cartão</h3>
-          <p className="text-sm text-muted-foreground">
-            Use o lançamento rápido acima para registrar compras parceladas no cartão.
-          </p>
-        </div>
+    <div className="w-full flex flex-col gap-6">
+      {/* ====== SEÇÃO DE LANÇAMENTO ====== */}
+      <div className="bg-gradient-to-br from-card via-card to-background border border-border/50 rounded-2xl p-4 md:p-6 w-full">
+        <div className="flex flex-col gap-4 md:gap-6">
+          {/* Header */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">Compras no cartão</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Registre compras parceladas nos seus cartões de crédito
+              </p>
+            </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="secondary" onClick={addRow} disabled={!canAdd} title="Adicionar linha rápida">
-            + Linha rápida
-          </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addRow}
+                disabled={!canAdd}
+                title="Adicionar linha rápida"
+                className="shrink-0"
+              >
+                + Linha
+              </Button>
 
-          <Button type="button" onClick={handleSubmit} disabled={!canAdd} title="Salvar compras">
-            Salvar compras
-          </Button>
-        </div>
-      </div>
-
-      {!canAdd && (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Para lançar compras, você precisa ter pelo menos <b>1 cartão</b> e{" "}
-          <b>1 categoria</b>.
-        </p>
-      )}
-
-      {submitError && (
-        <p className="mt-4 text-sm text-destructive">{submitError}</p>
-      )}
-
-      {/* Draft table no mesmo padrão: min-width + alinhamentos */}
-      <div className="mt-6 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-47.5">Cartão</TableHead>
-              <TableHead className="min-w-45">Categoria</TableHead>
-              <TableHead className="min-w-35 text-right">Valor</TableHead>
-              <TableHead className="min-w-30 text-right">Parcelas</TableHead>
-              <TableHead className="min-w-37.5 text-right">Data</TableHead>
-              <TableHead className="min-w-60">Descrição</TableHead>
-              <TableHead className="w-15 text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {rows.map((row, idx) => {
-              const isRowOk = payloadPreview[idx]?.ok;
-
-              return (
-                <TableRow key={row.id} className={!isRowOk ? "opacity-95" : ""}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {isRowOk ? (
-                        <Check className="w-4 h-4 text-emerald-500" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      )}
-                      <div className="min-w-0">
-                        <Select
-                          value={row.cardId}
-                          onValueChange={(v) => updateRow(row.id, { cardId: v })}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {cards.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <Select
-                      value={row.categoryId}
-                      onValueChange={(v) =>
-                        updateRow(row.id, { categoryId: v })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Input
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      value={row.totalAmount}
-                      onChange={(e) =>
-                        updateRow(row.id, { totalAmount: e.target.value })
-                      }
-                      className="text-right"
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Input
-                      inputMode="numeric"
-                      placeholder="1"
-                      value={row.installments}
-                      onChange={(e) =>
-                        updateRow(row.id, { installments: e.target.value })
-                      }
-                      className="text-right"
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full justify-between"
-                        >
-                          <span className="truncate">
-                            {row.purchaseDate
-                              ? formatDateBR(row.purchaseDate)
-                              : "Selecione"}
-                          </span>
-                          <span className="text-muted-foreground">📅</span>
-                        </Button>
-                      </PopoverTrigger>
-
-                      <PopoverContent className="p-0" align="end">
-                        <Calendar
-                          mode="single"
-                          selected={row.purchaseDate}
-                          onSelect={(d) =>
-                            updateRow(row.id, { purchaseDate: d ?? undefined })
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </TableCell>
-
-                  <TableCell>
-                    <Input
-                      placeholder="Opcional"
-                      value={row.description}
-                      onChange={(e) =>
-                        updateRow(row.id, { description: e.target.value })
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => removeRow(row.id)}
-                      disabled={rows.length <= 1}
-                      aria-label="Remover linha"
-                    >
-                      ✕
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        <p className="mt-3 text-xs text-muted-foreground">
-          Dica: linhas incompletas são ignoradas ao salvar. Preencha Cartão,
-          Categoria, Valor, Parcelas e Data.
-        </p>
-      </div>
-
-      {/* Histórico igualzinho ao padrão das transações */}
-      <div className="mt-10">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h4 className="text-base font-semibold text-foreground">Histórico</h4>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => loadPurchases(Math.max(1, page - 1))}
-              disabled={loading || page <= 1}
-            >
-              Anterior
-            </Button>
-
-            <span className="text-sm text-muted-foreground">
-              Página {page} de {totalPages}
-            </span>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => loadPurchases(Math.min(totalPages, page + 1))}
-              disabled={loading || page >= totalPages}
-            >
-              Próxima
-            </Button>
+              <Button 
+                type="button" 
+                onClick={handleSubmit} 
+                disabled={!canAdd} 
+                title="Salvar compras"
+                className="shrink-0"
+              >
+                Salvar
+              </Button>
+            </div>
           </div>
+
+          {!canAdd && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <p className="text-sm text-amber-600">
+                Para lançar compras, você precisa ter pelo menos <b>1 cartão</b> e <b>1 categoria</b>.
+              </p>
+            </div>
+          )}
+
+          {submitError && (
+            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-sm text-destructive">{submitError}</p>
+            </div>
+          )}
+
+          {/* Tabela Desktop / Cards Mobile */}
+          {canAdd && (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="hover:bg-muted/50">
+                      <TableHead className="min-w-40">Cartão</TableHead>
+                      <TableHead className="min-w-44">Categoria</TableHead>
+                      <TableHead className="min-w-32 text-right">Valor</TableHead>
+                      <TableHead className="min-w-28 text-right">Parcelas</TableHead>
+                      <TableHead className="min-w-36 text-right">Data</TableHead>
+                      <TableHead className="min-w-48">Descrição</TableHead>
+                      <TableHead className="w-12 text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {rows.map((row, idx) => {
+                      const isRowOk = payloadPreview[idx]?.ok;
+
+                      return (
+                        <TableRow key={row.id} className={!isRowOk ? "opacity-75 bg-muted/20" : ""}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {isRowOk ? (
+                                <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                              ) : (
+                                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <Select
+                                  value={row.cardId}
+                                  onValueChange={(v) =>
+                                    updateRow(row.id, { cardId: v })
+                                  }
+                                >
+                                  <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {cards.map((c) => (
+                                      <SelectItem key={c.id} value={c.id}>
+                                        {c.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <Select
+                              value={row.categoryId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { categoryId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Input
+                              inputMode="decimal"
+                              placeholder="0,00"
+                              value={row.totalAmount}
+                              onChange={(e) =>
+                                updateRow(row.id, { totalAmount: e.target.value })
+                              }
+                              className="text-right h-9"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Input
+                              inputMode="numeric"
+                              placeholder="1"
+                              value={row.installments}
+                              onChange={(e) =>
+                                updateRow(row.id, { installments: e.target.value })
+                              }
+                              className="text-right h-9"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full justify-between h-9"
+                                >
+                                  <span className="truncate text-xs">
+                                    {row.purchaseDate
+                                      ? formatDateBR(row.purchaseDate)
+                                      : "Selecione"}
+                                  </span>
+                                  <CalendarIcon size={14} className="flex-shrink-0 ml-2" />
+                                </Button>
+                              </PopoverTrigger>
+
+                              <PopoverContent className="p-0" align="end">
+                                <Calendar
+                                  mode="single"
+                                  selected={row.purchaseDate}
+                                  onSelect={(d) =>
+                                    updateRow(row.id, {
+                                      purchaseDate: d ?? undefined,
+                                    })
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </TableCell>
+
+                          <TableCell>
+                            <Input
+                              placeholder="Opcional"
+                              value={row.description}
+                              onChange={(e) =>
+                                updateRow(row.id, { description: e.target.value })
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeRow(row.id)}
+                              disabled={rows.length <= 1}
+                            >
+                              ✕
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden flex flex-col gap-3">
+                {rows.map((row, idx) => {
+                  const isRowOk = payloadPreview[idx]?.ok;
+                  const isExpanded = expandedRowId === row.id;
+
+                  return (
+                    <div
+                      key={row.id}
+                      className={`border rounded-lg overflow-hidden transition-all ${
+                        isRowOk
+                          ? "border-border bg-card"
+                          : "border-amber-500/30 bg-amber-500/5"
+                      }`}
+                    >
+                      {/* Card Header */}
+                      <button
+                        onClick={() => setExpandedRowId(isExpanded ? null : row.id)}
+                        className="w-full p-3 flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {isRowOk ? (
+                            <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                          ) : (
+                            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                          )}
+                          <div className="min-w-0 text-left">
+                            <p className="font-semibold text-sm truncate">
+                              {cards.find((c) => c.id === row.cardId)?.name ||
+                                "Cartão"}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {categories.find((c) => c.id === row.categoryId)?.name ||
+                                "Categoria"}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight
+                          size={20}
+                          className={`flex-shrink-0 transition-transform ${
+                            isExpanded ? "rotate-90" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {/* Card Content */}
+                      {isExpanded && (
+                        <div className="p-4 space-y-3 border-t border-border/50">
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Cartão
+                            </label>
+                            <Select
+                              value={row.cardId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { cardId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {cards.map((c) => (
+                                  <SelectItem key={c.id} value={c.id}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Categoria
+                            </label>
+                            <Select
+                              value={row.categoryId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { categoryId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold block mb-2">
+                                Valor
+                              </label>
+                              <Input
+                                inputMode="decimal"
+                                placeholder="0,00"
+                                value={row.totalAmount}
+                                onChange={(e) =>
+                                  updateRow(row.id, { totalAmount: e.target.value })
+                                }
+                                className="text-right h-9"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-semibold block mb-2">
+                                Parcelas
+                              </label>
+                              <Input
+                                inputMode="numeric"
+                                placeholder="1"
+                                value={row.installments}
+                                onChange={(e) =>
+                                  updateRow(row.id, { installments: e.target.value })
+                                }
+                                className="text-right h-9"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Data
+                            </label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full justify-between h-9"
+                                >
+                                  <span className="text-sm">
+                                    {row.purchaseDate
+                                      ? formatDateBR(row.purchaseDate)
+                                      : "Selecione"}
+                                  </span>
+                                  <CalendarIcon size={16} />
+                                </Button>
+                              </PopoverTrigger>
+
+                              <PopoverContent className="p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={row.purchaseDate}
+                                  onSelect={(d) =>
+                                    updateRow(row.id, {
+                                      purchaseDate: d ?? undefined,
+                                    })
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Descrição (opcional)
+                            </label>
+                            <Input
+                              placeholder="Digite uma descrição"
+                              value={row.description}
+                              onChange={(e) =>
+                                updateRow(row.id, {
+                                  description: e.target.value,
+                                })
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeRow(row.id)}
+                            disabled={rows.length <= 1}
+                            className="w-full"
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-xs text-muted-foreground px-3">
+                ℹ️ Linhas incompletas são ignoradas ao salvar. Preencha Cartão, Categoria, Valor, Parcelas e Data.
+              </p>
+            </>
+          )}
         </div>
+      </div>
 
-        {loading && (
-          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
-        )}
-        {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
+      {/* ====== HISTÓRICO ====== */}
+      <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
+        <div className="flex flex-col gap-4 md:gap-6">
+          {/* Header */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">Histórico de compras</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Últimas compras registradas nos seus cartões
+              </p>
+            </div>
 
-        {!loading && !error && (historyRows?.length ?? 0) === 0 && (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Nenhuma compra encontrada.
-          </p>
-        )}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => loadPurchases(Math.max(1, page - 1))}
+                disabled={loading || page <= 1}
+              >
+                ← Anterior
+              </Button>
 
-        {!loading && !error && (historyRows?.length ?? 0) > 0 && (
-          <div className="mt-4 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-45">Cartão</TableHead>
-                  <TableHead className="min-w-40">Categoria</TableHead>
-                  <TableHead className="min-w-35 text-right">
-                    Valor
-                  </TableHead>
-                  <TableHead className="min-w-30 text-right">
-                    Parcelas
-                  </TableHead>
-                  <TableHead className="min-w-35 text-right">
-                    Data
-                  </TableHead>
-                  <TableHead className="min-w-60">Descrição</TableHead>
-                  <TableHead className="w-15 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
+              <span className="text-xs md:text-sm text-muted-foreground px-2 py-1 bg-muted/50 rounded">
+                {page} / {totalPages}
+              </span>
 
-              <TableBody>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => loadPurchases(Math.min(totalPages, page + 1))}
+                disabled={loading || page >= totalPages}
+              >
+                Próxima →
+              </Button>
+            </div>
+          </div>
+
+          {/* Loading/Error/Empty States */}
+          {loading && (
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground">Carregando compras...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && (historyRows?.length ?? 0) === 0 && (
+            <div className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhuma compra encontrada neste período.
+              </p>
+            </div>
+          )}
+
+          {!loading && !error && (historyRows?.length ?? 0) > 0 && (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="hover:bg-muted/50">
+                      <TableHead className="min-w-40">Cartão</TableHead>
+                      <TableHead className="min-w-40">Categoria</TableHead>
+                      <TableHead className="min-w-32 text-right">Valor</TableHead>
+                      <TableHead className="min-w-28 text-right">Parcelas</TableHead>
+                      <TableHead className="min-w-36 text-right">Data</TableHead>
+                      <TableHead className="min-w-48">Descrição</TableHead>
+                      <TableHead className="w-12 text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {historyRows.map((p: any) => (
+                      <TableRow key={p.id} className="hover:bg-muted/30">
+                        <TableCell className="font-medium text-foreground">
+                          {p.cardName ?? p.card?.name ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-foreground">
+                          {p.categoryName ?? p.category?.name ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-foreground">
+                          {Number(p.totalAmount ?? 0).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right text-foreground text-sm">
+                          {p.installments ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-right text-foreground text-sm">
+                          {formatDateBRFromISO(p.purchaseDate)}
+                        </TableCell>
+                        <TableCell className="text-foreground text-sm max-w-48 truncate">
+                          {p.description ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Popover
+                            open={openId === p.id}
+                            onOpenChange={(o) => setOpenId(o ? p.id : null)}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </PopoverTrigger>
+
+                            <PopoverContent className="w-56">
+                              <PopoverHeader>
+                                <p className="text-sm mb-3 font-semibold">
+                                  Confirmar exclusão
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                  Excluir compra de{" "}
+                                  <span className="font-semibold">
+                                    {p.totalAmount.toLocaleString("pt-BR", {
+                                      style: "currency",
+                                      currency: "BRL",
+                                    })}
+                                  </span>
+                                  ?
+                                </p>
+
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setOpenId(null)}
+                                  >
+                                    Cancelar
+                                  </Button>
+
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      handleDeletePurchase(p.id);
+                                      setOpenId(null);
+                                    }}
+                                  >
+                                    Excluir
+                                  </Button>
+                                </div>
+                              </PopoverHeader>
+                            </PopoverContent>
+                          </Popover>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden flex flex-col gap-3">
                 {historyRows.map((p: any) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-foreground">
-                      {p.cardName ?? p.card?.name ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-foreground">
-                      {p.categoryName ?? p.category?.name ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground font-semibold">
-                      {Number(p.totalAmount ?? 0).toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground">
-                      {p.installments ?? "-"}
-                    </TableCell>
-                    <TableCell className="text-right text-foreground">
-                      {formatDateBRFromISO(p.purchaseDate)}
-                    </TableCell>
-                    <TableCell className="text-foreground">
-                      {p.description ?? ""}
-                    </TableCell>
-                    <TableCell>
-                      <Popover open={openId === p.id} onOpenChange={(o) => setOpenId(o ? p.id : null)}>
+                  <div
+                    key={p.id}
+                    className="border border-border rounded-lg p-4 space-y-2 hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground">
+                          {p.cardName ?? p.card?.name ?? "-"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {p.categoryName ?? p.category?.name ?? "-"}
+                        </p>
+                      </div>
+                      <p className="font-bold text-lg text-foreground">
+                        {Number(p.totalAmount ?? 0).toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>{p.installments ?? "-"}x</span>
+                      <span>{formatDateBRFromISO(p.purchaseDate)}</span>
+                    </div>
+
+                    {p.description && (
+                      <p className="text-sm text-foreground bg-muted/30 p-2 rounded mt-2">
+                        {p.description}
+                      </p>
+                    )}
+
+                    <div className="pt-2 border-t border-border/50 flex justify-end">
+                      <Popover
+                        open={openId === p.id}
+                        onOpenChange={(o) => setOpenId(o ? p.id : null)}
+                      >
                         <PopoverTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="text-red-500 hover:text-red-600"
+                            size="sm"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={16} className="mr-2" />
+                            Excluir
                           </Button>
                         </PopoverTrigger>
 
                         <PopoverContent className="w-56">
                           <PopoverHeader>
-                            <p className="text-sm mb-3">
-                              Deseja realmente excluir a compra de{" "}
-                              {p.totalAmount.toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
+                            <p className="text-sm mb-3 font-semibold">
+                              Confirmar exclusão
+                            </p>
+                            <p className="text-xs text-muted-foreground mb-4">
+                              Excluir compra de{" "}
+                              <span className="font-semibold">
+                                {p.totalAmount.toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                              </span>
                               ?
                             </p>
 
                             <div className="flex justify-end gap-2">
-                              <Button variant="outline" size="sm" onClick={() => setOpenId(null)}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOpenId(null)}
+                              >
                                 Cancelar
                               </Button>
 
@@ -498,8 +844,8 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => {
-                                    handleDeletePurchase(p.id) 
-                                    setOpenId(null)
+                                  handleDeletePurchase(p.id);
+                                  setOpenId(null);
                                 }}
                               >
                                 Excluir
@@ -508,13 +854,13 @@ export function MonthlyCardPurchasesTable({ cards, categories, onSubmit }: Props
                           </PopoverHeader>
                         </PopoverContent>
                       </Popover>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

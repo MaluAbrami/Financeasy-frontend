@@ -18,14 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, Trash2, Calendar as CalendarIcon, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverHeader, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 
 import { transactionService } from "@/services/TransactionService";
-import { Trash2 } from "lucide-react";
 
 type Props = {
   bankAccounts: BankAccountResponse[];
@@ -65,6 +64,8 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
   const [rows, setRows] = useState<TransactionDraft[]>(() => [newDraftRow()]);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [mobileConfirmId, setMobileConfirmId] = useState<string | null>(null);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   const paymentMethods: { value: PaymentMethod; label: string }[] = [
     { value: "Pix", label: "Pix" },
@@ -188,341 +189,679 @@ export function MonthlyTransactionsTable({ bankAccounts, categories, onSubmit, r
   }, []);
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
-      {/* ====== Header ====== */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h3 className="text-base md:text-lg font-semibold text-foreground">Transações do mês</h3>
-          <p className="text-sm text-muted-foreground">
-            Use o lançamento rápido acima para registrar transações (impactam o saldo). As compras no cartão ficam em outra aba.
-          </p>
-        </div>
+    <div className="w-full flex flex-col gap-6">
+      {/* ====== SEÇÃO DE LANÇAMENTO ====== */}
+      <div className="bg-gradient-to-br from-card via-card to-background border border-border/50 rounded-2xl p-4 md:p-6 w-full">
+        <div className="flex flex-col gap-4 md:gap-6">
+          {/* Header */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">Lançamento rápido</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Registre transações que afetam diretamente o saldo das suas contas
+              </p>
+            </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={addRow}
-            disabled={!canAdd}
-            title="Adicionar linha rápida"
-          >
-            + Linha rápida
-          </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addRow}
+                disabled={!canAdd}
+                title="Adicionar linha rápida"
+                className="shrink-0"
+              >
+                + Linha
+              </Button>
 
-          <Button type="button" onClick={handleSubmit} disabled={!canAdd} title="Salvar lançamentos">
-            Salvar lançamentos
-          </Button>
-        </div>
-      </div>
-
-      {!canAdd && (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Para lançar transações, você precisa ter pelo menos <b>1 conta</b> e{" "}
-          <b>1 categoria</b>.
-        </p>
-      )}
-
-      {submitError && (
-        <p className="mt-4 text-sm text-destructive">{submitError}</p>
-      )}
-
-      {/* ====== Tabela de lançamento (draft) ====== */}
-      <div className="mt-6 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-47.5">Conta</TableHead>
-              <TableHead className="min-w-45">Categoria</TableHead>
-              <TableHead className="min-w-40">Método</TableHead>
-              <TableHead className="min-w-35 text-right">Valor</TableHead>
-              <TableHead className="min-w-37.5 text-right">Data</TableHead>
-              <TableHead className="min-w-60">Descrição</TableHead>
-              <TableHead className="w-15 text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {rows.map((row, idx) => {
-              const isRowOk = payloadPreview[idx]?.ok;
-
-              return (
-                <TableRow key={row.id} className={!isRowOk ? "opacity-95" : ""}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {isRowOk ? (
-                        <Check className="w-4 h-4 text-emerald-500" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      )}
-                      <div className="min-w-0">
-                        <Select
-                          value={row.bankAccountId}
-                          onValueChange={(v) =>
-                            updateRow(row.id, { bankAccountId: v })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {bankAccounts.map((acc) => (
-                              <SelectItem key={acc.id} value={acc.id}>
-                                {acc.bank}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <Select
-                      value={row.categoryId}
-                      onValueChange={(v) =>
-                        updateRow(row.id, { categoryId: v })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  <TableCell>
-                    <Select
-                      value={row.paymentMethod}
-                      onValueChange={(v) =>
-                        updateRow(row.id, { paymentMethod: v as PaymentMethod })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paymentMethods.map((m) => (
-                          <SelectItem
-                            key={String(m.value)}
-                            value={String(m.value)}
-                          >
-                            {m.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Input
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      value={row.amount}
-                      onChange={(e) =>
-                        updateRow(row.id, { amount: e.target.value })
-                      }
-                      className="text-right"
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full justify-between"
-                        >
-                          <span className="truncate">
-                            {row.date ? formatDateBR(row.date) : "Selecione"}
-                          </span>
-                          <span className="text-muted-foreground">📅</span>
-                        </Button>
-                      </PopoverTrigger>
-
-                      <PopoverContent className="p-0" align="end">
-                        <Calendar
-                          mode="single"
-                          selected={row.date}
-                          onSelect={(d) =>
-                            updateRow(row.id, { date: d ?? undefined })
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </TableCell>
-
-                  <TableCell>
-                    <Input
-                      placeholder="Opcional"
-                      value={row.description}
-                      onChange={(e) =>
-                        updateRow(row.id, { description: e.target.value })
-                      }
-                    />
-                  </TableCell>
-
-                  <TableCell className="text-right">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => removeRow(row.id)}
-                      disabled={rows.length <= 1}
-                    >
-                      ✕
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        <p className="mt-3 text-xs text-muted-foreground">
-          Dica: linhas incompletas são ignoradas ao salvar. Preencha Conta,
-          Categoria, Método, Valor e Data.
-        </p>
-      </div>
-
-      {/* ====== Listagem do backend (read-only) ====== */}
-      <div className="mt-10">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h4 className="text-base font-semibold text-foreground">Histórico</h4>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => loadTransactions(Math.max(1, page - 1))}
-              disabled={loadingTx || page <= 1}
-            >
-              Anterior
-            </Button>
-
-            <span className="text-sm text-muted-foreground">
-              Página {page} de {totalPages}
-            </span>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => loadTransactions(Math.min(totalPages, page + 1))}
-              disabled={loadingTx || page >= totalPages}
-            >
-              Próxima
-            </Button>
+              <Button 
+                type="button" 
+                onClick={handleSubmit} 
+                disabled={!canAdd} 
+                title="Salvar lançamentos"
+                className="shrink-0"
+              >
+                Salvar
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {loadingTx && (
-          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
-        )}
-        {errorTx && <p className="mt-4 text-sm text-destructive">{errorTx}</p>}
-
-        {!loadingTx &&
-          !errorTx &&
-          (transactionsData?.transactions?.length ?? 0) === 0 && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Nenhuma transação encontrada.
-            </p>
+          {!canAdd && (
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <p className="text-sm text-amber-600">
+                Para lançar transações, você precisa ter pelo menos <b>1 conta</b> e <b>1 categoria</b>.
+              </p>
+            </div>
           )}
 
-        {!loadingTx &&
-          !errorTx &&
-          (transactionsData?.transactions?.length ?? 0) > 0 && (
-            <div className="mt-4 overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-40">Conta</TableHead>
-                    <TableHead className="min-w-40">Categoria</TableHead>
-                    <TableHead className="min-w-35">Método</TableHead>
-                    <TableHead className="min-w-35 text-right">Valor</TableHead>
-                    <TableHead className="min-w-35 text-right">Data</TableHead>
-                    <TableHead className="min-w-60">Descrição</TableHead>
-                    <TableHead className="w-15 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+          {submitError && (
+            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-sm text-destructive">{submitError}</p>
+            </div>
+          )}
 
-                <TableBody>
-                  {transactionsData!.transactions.map(
-                    (t: TransactionResponse) => (
-                      <TableRow key={t.id}>
-                        <TableCell className="text-foreground">
-                          {t.bankAccountName}
-                        </TableCell>
-                        <TableCell className="text-foreground">
-                          {t.categoryName}
-                        </TableCell>
-                        <TableCell className="text-foreground">
-                          {String(t.paymentMethod)}
-                        </TableCell>
-                        <TableCell className="text-right text-foreground font-semibold">
+          {/* Tabela Desktop / Cards Mobile */}
+          {canAdd && (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="hover:bg-muted/50">
+                      <TableHead className="min-w-44">Conta</TableHead>
+                      <TableHead className="min-w-44">Categoria</TableHead>
+                      <TableHead className="min-w-40">Método</TableHead>
+                      <TableHead className="min-w-32 text-right">Valor</TableHead>
+                      <TableHead className="min-w-36 text-right">Data</TableHead>
+                      <TableHead className="min-w-48">Descrição</TableHead>
+                      <TableHead className="w-12 text-right">Ação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+
+                  <TableBody>
+                    {rows.map((row, idx) => {
+                      const isRowOk = payloadPreview[idx]?.ok;
+
+                      return (
+                        <TableRow key={row.id} className={!isRowOk ? "opacity-75 bg-muted/20" : ""}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {isRowOk ? (
+                                <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                              ) : (
+                                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                              )}
+                              <div className="min-w-0">
+                                <Select
+                                  value={row.bankAccountId}
+                                  onValueChange={(v) =>
+                                    updateRow(row.id, { bankAccountId: v })
+                                  }
+                                >
+                                  <SelectTrigger className="h-9">
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {bankAccounts.map((acc) => (
+                                      <SelectItem key={acc.id} value={acc.id}>
+                                        {acc.bank}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </TableCell>
+
+                          <TableCell>
+                            <Select
+                              value={row.categoryId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { categoryId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+
+                          <TableCell>
+                            <Select
+                              value={row.paymentMethod}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { paymentMethod: v as PaymentMethod })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {paymentMethods.map((m) => (
+                                  <SelectItem
+                                    key={String(m.value)}
+                                    value={String(m.value)}
+                                  >
+                                    {m.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Input
+                              inputMode="decimal"
+                              placeholder="0,00"
+                              value={row.amount}
+                              onChange={(e) =>
+                                updateRow(row.id, { amount: e.target.value })
+                              }
+                              className="text-right h-9"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full justify-between h-9"
+                                >
+                                  <span className="truncate text-xs">
+                                    {row.date ? formatDateBR(row.date) : "Selecione"}
+                                  </span>
+                                  <CalendarIcon size={14} className="flex-shrink-0 ml-2" />
+                                </Button>
+                              </PopoverTrigger>
+
+                              <PopoverContent className="p-0" align="end">
+                                <Calendar
+                                  mode="single"
+                                  selected={row.date}
+                                  onSelect={(d) =>
+                                    updateRow(row.id, { date: d ?? undefined })
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </TableCell>
+
+                          <TableCell>
+                            <Input
+                              placeholder="Opcional"
+                              value={row.description}
+                              onChange={(e) =>
+                                updateRow(row.id, { description: e.target.value })
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </TableCell>
+
+                          <TableCell className="text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeRow(row.id)}
+                              disabled={rows.length <= 1}
+                            >
+                              ✕
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden flex flex-col gap-3">
+                {rows.map((row, idx) => {
+                  const isRowOk = payloadPreview[idx]?.ok;
+                  const isExpanded = expandedRowId === row.id;
+
+                  return (
+                    <div
+                      key={row.id}
+                      className={`border rounded-lg overflow-hidden transition-all ${
+                        isRowOk
+                          ? "border-border bg-card"
+                          : "border-amber-500/30 bg-amber-500/5"
+                      }`}
+                    >
+                      {/* Card Header */}
+                      <button
+                        onClick={() => setExpandedRowId(isExpanded ? null : row.id)}
+                        className="w-full p-3 flex items-center justify-between bg-muted/30 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {isRowOk ? (
+                            <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                          ) : (
+                            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                          )}
+                          <div className="min-w-0 text-left">
+                            <p className="font-semibold text-sm truncate">
+                              {bankAccounts.find((a) => a.id === row.bankAccountId)?.bank ||
+                                "Conta"}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {categories.find((c) => c.id === row.categoryId)?.name ||
+                                "Categoria"}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight
+                          size={20}
+                          className={`flex-shrink-0 transition-transform ${
+                            isExpanded ? "rotate-90" : ""
+                          }`}
+                        />
+                      </button>
+
+                      {/* Card Content */}
+                      {isExpanded && (
+                        <div className="p-4 space-y-3 border-t border-border/50">
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Conta
+                            </label>
+                            <Select
+                              value={row.bankAccountId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { bankAccountId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {bankAccounts.map((acc) => (
+                                  <SelectItem key={acc.id} value={acc.id}>
+                                    {acc.bank}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Categoria
+                            </label>
+                            <Select
+                              value={row.categoryId}
+                              onValueChange={(v) =>
+                                updateRow(row.id, { categoryId: v })
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-semibold block mb-2">
+                                Método
+                              </label>
+                              <Select
+                                value={row.paymentMethod}
+                                onValueChange={(v) =>
+                                  updateRow(row.id, {
+                                    paymentMethod: v as PaymentMethod,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="h-9">
+                                  <SelectValue placeholder="Selecione" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {paymentMethods.map((m) => (
+                                    <SelectItem
+                                      key={String(m.value)}
+                                      value={String(m.value)}
+                                    >
+                                      {m.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-semibold block mb-2">
+                                Valor
+                              </label>
+                              <Input
+                                inputMode="decimal"
+                                placeholder="0,00"
+                                value={row.amount}
+                                onChange={(e) =>
+                                  updateRow(row.id, { amount: e.target.value })
+                                }
+                                className="text-right h-9"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Data
+                            </label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full justify-between h-9"
+                                >
+                                  <span className="text-sm">
+                                    {row.date
+                                      ? formatDateBR(row.date)
+                                      : "Selecione"}
+                                  </span>
+                                  <CalendarIcon size={16} />
+                                </Button>
+                              </PopoverTrigger>
+
+                              <PopoverContent className="p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={row.date}
+                                  onSelect={(d) =>
+                                    updateRow(row.id, {
+                                      date: d ?? undefined,
+                                    })
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-semibold block mb-2">
+                              Descrição (opcional)
+                            </label>
+                            <Input
+                              placeholder="Digite uma descrição"
+                              value={row.description}
+                              onChange={(e) =>
+                                updateRow(row.id, {
+                                  description: e.target.value,
+                                })
+                              }
+                              className="h-9 text-sm"
+                            />
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeRow(row.id)}
+                            disabled={rows.length <= 1}
+                            className="w-full"
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-xs text-muted-foreground px-3">
+                ℹ️ Linhas incompletas são ignoradas ao salvar. Preencha Conta, Categoria, Método, Valor e Data.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ====== HISTÓRICO ====== */}
+      <div className="bg-card border border-border rounded-2xl p-4 md:p-6 w-full">
+        <div className="flex flex-col gap-4 md:gap-6">
+          {/* Header */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-foreground">Histórico de transações</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Últimas transações registradas no sistema
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => loadTransactions(Math.max(1, page - 1))}
+                disabled={loadingTx || page <= 1}
+              >
+                ← Anterior
+              </Button>
+
+              <span className="text-xs md:text-sm text-muted-foreground px-2 py-1 bg-muted/50 rounded">
+                {page} / {totalPages}
+              </span>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => loadTransactions(Math.min(totalPages, page + 1))}
+                disabled={loadingTx || page >= totalPages}
+              >
+                Próxima →
+              </Button>
+            </div>
+          </div>
+
+          {/* Loading/Error/Empty States */}
+          {loadingTx && (
+            <div className="p-4 text-center">
+              <p className="text-sm text-muted-foreground">Carregando transações...</p>
+            </div>
+          )}
+
+          {errorTx && (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <p className="text-sm text-destructive">{errorTx}</p>
+            </div>
+          )}
+
+          {!loadingTx &&
+            !errorTx &&
+            (transactionsData?.transactions?.length ?? 0) === 0 && (
+              <div className="p-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma transação encontrada neste período.
+                </p>
+              </div>
+            )}
+
+          {!loadingTx &&
+            !errorTx &&
+            (transactionsData?.transactions?.length ?? 0) > 0 && (
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block overflow-x-auto rounded-lg border border-border/50">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow className="hover:bg-muted/50">
+                        <TableHead className="min-w-40">Conta</TableHead>
+                        <TableHead className="min-w-40">Categoria</TableHead>
+                        <TableHead className="min-w-36">Método</TableHead>
+                        <TableHead className="min-w-32 text-right">Valor</TableHead>
+                        <TableHead className="min-w-36 text-right">Data</TableHead>
+                        <TableHead className="min-w-48">Descrição</TableHead>
+                        <TableHead className="w-12 text-right">Ação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {transactionsData!.transactions.map((t: TransactionResponse) => (
+                        <TableRow key={t.id} className="hover:bg-muted/30">
+                          <TableCell className="font-medium text-foreground">
+                            {t.bankAccountName}
+                          </TableCell>
+                          <TableCell className="text-foreground">
+                            {t.categoryName}
+                          </TableCell>
+                          <TableCell className="text-foreground text-sm">
+                            {String(t.paymentMethod)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-foreground">
+                            {t.amount.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </TableCell>
+                          <TableCell className="text-right text-foreground text-sm">
+                            {formatDateBRFromISO(t.date)}
+                          </TableCell>
+                          <TableCell className="text-foreground text-sm max-w-48 truncate">
+                            {t.description || "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Popover
+                              open={openId === t.id}
+                              onOpenChange={(o) => setOpenId(o ? t.id : null)}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                  aria-label={`Excluir transação`}
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </PopoverTrigger>
+
+                              <PopoverContent className="w-56">
+                                <PopoverHeader>
+                                  <p className="text-sm mb-3 font-semibold">
+                                    Confirmar exclusão
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mb-4">
+                                    Excluir transação de{" "}
+                                    <span className="font-semibold">
+                                      {t.amount.toLocaleString("pt-BR", {
+                                        style: "currency",
+                                        currency: "BRL",
+                                      })}
+                                    </span>
+                                    ?
+                                  </p>
+
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setOpenId(null)}
+                                    >
+                                      Cancelar
+                                    </Button>
+
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => {
+                                        handleDeleteTransaction(t.id);
+                                        setOpenId(null);
+                                      }}
+                                    >
+                                      Excluir
+                                    </Button>
+                                  </div>
+                                </PopoverHeader>
+                              </PopoverContent>
+                            </Popover>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Cards */}
+                <div className="md:hidden flex flex-col gap-3">
+                  {transactionsData!.transactions.map((t: TransactionResponse) => (
+                    <div
+                      key={t.id}
+                      className="border border-border rounded-lg p-4 space-y-2 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground">
+                            {t.bankAccountName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t.categoryName}
+                          </p>
+                        </div>
+                        <p className="font-bold text-lg text-foreground">
                           {t.amount.toLocaleString("pt-BR", {
                             style: "currency",
                             currency: "BRL",
                           })}
-                        </TableCell>
-                        <TableCell className="text-right text-foreground">
-                          {formatDateBRFromISO(t.date)}
-                        </TableCell>
-                        <TableCell className="text-foreground">{t.description}</TableCell>
-                        <TableCell className="text-right">
-                          <Popover open={openId === t.id} onOpenChange={(o) => setOpenId(o ? t.id : null)}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-500 hover:text-red-600"
-                                aria-label={`Excluir transação ${t.id}`}
-                              >
-                                <Trash2 size={16} />
-                              </Button>
-                            </PopoverTrigger>
+                        </p>
+                      </div>
 
-                            <PopoverContent className="w-56">
-                              <PopoverHeader>
-                                <p className="text-sm mb-3">
-                                  Deseja realmente excluir a transação de {t.amount.toLocaleString("pt-BR", {
-                                    style: "currency",
-                                    currency: "BRL",
-                                  })}?
-                                </p>
+                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <span>{String(t.paymentMethod)}</span>
+                        <span>{formatDateBRFromISO(t.date)}</span>
+                      </div>
 
-                                <div className="flex justify-end gap-2">
-                                  <Button variant="outline" size="sm" onClick={() => setOpenId(null)}>
-                                    Cancelar
-                                  </Button>
+                      {t.description && (
+                        <p className="text-sm text-foreground bg-muted/30 p-2 rounded mt-2">
+                          {t.description}
+                        </p>
+                      )}
 
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => {
-                                      handleDeleteTransaction(t.id);
-                                      setOpenId(null);
-                                    }}
-                                  >
-                                    Excluir
-                                  </Button>
-                                </div>
-                              </PopoverHeader>
-                            </PopoverContent>
-                          </Popover>
-                        </TableCell>
-                      </TableRow>
-                    ),
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                      <div className="pt-2 border-t border-border/50 flex justify-end">
+                        {mobileConfirmId === t.id ? (
+                          <div className="flex justify-end gap-2 w-full">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setMobileConfirmId(null)}
+                            >
+                              Cancelar
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                handleDeleteTransaction(t.id);
+                                setMobileConfirmId(null);
+                              }}
+                            >
+                              Excluir
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            onClick={() => setMobileConfirmId(t.id)}
+                          >
+                            <Trash2 size={16} className="mr-2" />
+                            Excluir
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+        </div>
       </div>
     </div>
   );
